@@ -1,0 +1,5 @@
+{
+    "btl_gatk_bqsr_workflow.btl_gatk_bqsr.salutation_input_string": "hello",
+    "btl_gatk_bqsr_workflow.btl_gatk_bqsr.name_input_file": "https://personal.broadinstitute.org/gsaksena/world.txt",
+    "btl_gatk_bqsr_workflow.btl_gatk_bqsr.output_disk_gb": "10"
+}

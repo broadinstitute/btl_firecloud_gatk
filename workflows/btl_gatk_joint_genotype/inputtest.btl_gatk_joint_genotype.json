@@ -1,0 +1,5 @@
+{
+    "btl_gatk_joint_genotype_workflow.btl_gatk_joint_genotype.salutation_input_string": "hello",
+    "btl_gatk_joint_genotype_workflow.btl_gatk_joint_genotype.name_input_file": "https://personal.broadinstitute.org/gsaksena/world.txt",
+    "btl_gatk_joint_genotype_workflow.btl_gatk_joint_genotype.output_disk_gb": "10"
+}

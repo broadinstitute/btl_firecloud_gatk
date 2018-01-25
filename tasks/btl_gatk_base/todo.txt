@@ -1,0 +1,40 @@
+add picard via tarball, pick just one version for now.
+remove use statements
+add gatk - needs to allow different versions 3.5, 3.7
+
+    use R-3.1 - not sure if needed
+snpeff}   ${snpeff_db} 
+
+/cil/shed/apps/internal/IntervalsCreator/intervals_creator.py
+/cil/shed/apps/internal/version_check/version_check.py
+
+"gatk.picard": "/cil/shed/apps/external/picard/current/bin/picard.jar",
+  "gatk.gatk": "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar",
+  old - "gatk.snpeff": "/cil/shed/apps/external/annotation/snpEff4/snpEff/snpEff.jar",
+  "gatk.snpeff": "/cil/shed/apps/external/snpEff/snpEff-4.1g/snpEff.jar",
+
+
+---
+Xadd docker line to runtime block
+Xadd monitor code to command block
+Xensure nonzero exit codes return a failure
+Xtask MakeOutputDir - mitigate #task copyFile { SymlinkCromwellExecutionDir removeFile, CopyFastq
+XGenerateFastqNames - may be promising to output files that were made by someone else
+IndexBAM - needs to have bam index passed out explicitly? not used?
+Ensure that task input/output files are passed as File rather than String; avoid direct filename manipulation
+--
+add debug_dump.tar?
+add vm characteristics to runtime block
+do we add /opt/execution, /opt/input symlinks to the individual tasks?
+snpeff db remote vs local?
+look at cutting up pipeline up to separate the haplotype calling from the joint calling portion
+output filenames presumed to be ok, but check
+doublecheck that nothing is writing to /tmp, from dstat
+--
+tweak local cromwell setup to do job avoidance
+--
+note - reindexes reference every time. (check if indexes are conditionally created - could just pass in a tarball that may or may not contain indicies.)
+----
+tar cvPf btl_gatk_dependencies.tar --exclude .svn /cil/shed/apps/external/picard/current /seq/software/picard/1.782/ /humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar /cil/shed/apps/external/snpEff/snpEff-4.1g/snpEff.jar
+---
+file issue file vs string for the same variable...*** 

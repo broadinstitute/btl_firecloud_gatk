@@ -1,0 +1,33 @@
+FROM ubuntu:16.04
+RUN apt-get update && apt-get install -y python sudo dstat
+
+#install java 1.8
+# TODO add apt-get update to this line
+RUN apt-get install -y software-properties-common
+
+RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections  \
+&&  add-apt-repository ppa:webupd8team/java \
+&&  apt-get update \
+&&  apt-get install -y oracle-java8-installer \
+&&  apt-get install -y oracle-java8-set-default
+
+# TODO add apt-get update to this line
+RUN apt-get install -y samtools bwa
+
+RUN apt-get update && apt-get install -y python-pip
+RUN pip install numpy
+RUN pip install biopython
+
+#copy contents of tasks/<taskname>/build/src on the build host into /opt/src on the docker
+COPY src/ /opt/src/
+
+# tar created via
+# tar cvPf btl_gatk_dependencies.tar --exclude .svn /cil/shed/apps/external/picard/current /seq/software/picard/1.782/ /humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar /cil/shed/apps/external/snpEff/snpEff-4.1g/snpEff.jar
+# gzip -c --best btl_gatk_dependencies.tar > btl_gatk_dependencies.tar.gz
+# split -b 50M btl_gatk_dependencies.tar.gz btl_gatk_dependencies.tar.gz.partial.
+
+RUN cat /opt/src/btl_gatk_dependencies.tar.gz.partial.* > /opt/src/btl_gatk_dependencies.tar.gz && \
+    tar xvPf /opt/src/btl_gatk_dependencies.tar.gz && \
+    rm /opt/src/btl_gatk_dependencies.tar.gz*
+RUN cp /opt/src/snpEff.config /cil/shed/apps/external/snpEff/snpEff-4.1g
+WORKDIR /opt/src

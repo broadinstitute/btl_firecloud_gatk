@@ -1,0 +1,5 @@
+{
+    "btl_gatk_alignbam_workflow.btl_gatk_alignbam.salutation_input_string": "hello",
+    "btl_gatk_alignbam_workflow.btl_gatk_alignbam.name_input_file": "https://personal.broadinstitute.org/gsaksena/world.txt",
+    "btl_gatk_alignbam_workflow.btl_gatk_alignbam.output_disk_gb": "10"
+}

@@ -1,0 +1,5 @@
+{
+    "btl_gatk_tcir_workflow.btl_gatk_tcir.salutation_input_string": "hello",
+    "btl_gatk_tcir_workflow.btl_gatk_tcir.name_input_file": "https://personal.broadinstitute.org/gsaksena/world.txt",
+    "btl_gatk_tcir_workflow.btl_gatk_tcir.output_disk_gb": "10"
+}
