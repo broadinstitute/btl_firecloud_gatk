@@ -2,14 +2,8 @@
 workflow gatk_alignbam {
 
     String picard = "/cil/shed/apps/external/picard/current/bin/picard.jar"
-    File index_reference_out
-    File index_reference_dict
-    File index_reference_amb
-    File index_reference_ann
-    File index_reference_bwt
-    File index_reference_fai
-    File index_reference_pac
-    File index_reference_sa
+    File reference_tgz
+
     String sample_name
 
 # TODO verify whether index needs to be passed in
@@ -22,15 +16,7 @@ workflow gatk_alignbam {
 
     call AlignBAM {
         input:
-        ref = index_reference_out,
-        dict = index_reference_dict,
-        amb = index_reference_amb,
-        ann = index_reference_ann,
-        bwt = index_reference_bwt,
-        fai = index_reference_fai,
-        pac = index_reference_pac,
-        sa = index_reference_sa,
-        sample_name = sample_name,
+        reference_tgz = reference_tgz,
         fq1 = SamToFastq.fq1,
         fq2 = SamToFastq.fq2
     }
@@ -70,11 +56,48 @@ task SamToFastq {
     String sample_name
     String out_fq1 = "${sample_name}.1.fq"
     String out_fq2 = "${sample_name}.2.fq"
+
+    String output_disk_gb 
+    String boot_disk_gb = "10"
+    String ram_gb = "3"
+    String cpu_cores = "1"
+    String preemptible = "0"
+    String debug_dump_flag
+
     command {
         set -euo pipefail
+        ln -sT `pwd` /opt/execution
+        ln -sT `pwd`/../inputs /opt/inputs
+
         /opt/src/algutil/monitor_start.py
-        java -Xmx12G -jar ${picard} SamToFastq INPUT=${in_bam} FASTQ=${out_fq1} SECOND_END_FASTQ=${out_fq2} VALIDATION_STRINGENCY=LENIENT
+python_cmd="
+import subprocess
+def run(cmd):
+    print (cmd)
+    subprocess.check_call(cmd,shell=True)
+
+run('java -Xmx12G -jar ${picard} SamToFastq INPUT=${in_bam} FASTQ=${out_fq1} SECOND_END_FASTQ=${out_fq2} VALIDATION_STRINGENCY=LENIENT')
+"
+
+        echo "$python_cmd"
+        python -c "$python_cmd"
+        export exit_code=$?
+        echo exit code is $exit_code
+
+        # create bundle conditional on failure
+        if [[ "$debug_dump_flag" == "always" || ( "$debug_dump_flag" == "onfail" && $exit_code -ne 0 ) ]]
+        then
+            echo "Creating debug bundle"
+            # tar up the output directory
+            touch debug_bundle.tar.gz
+            tar cfz debug_bundle.tar.gz --exclude=debug_bundle.tar.gz .
+        else
+            touch debug_bundle.tar.gz
+        fi     
         /opt/src/algutil/monitor_stop.py
+
+        # exit statement must be the last line in the command block 
+        exit $exit_code
 
     }
     output {
@@ -100,21 +123,27 @@ task SamToFastq {
 
 task AlignBAM {
     String sample_name
-    File ref
-    File dict
-    File amb
-    File ann
-    File bwt
-    File fai
-    File pac
-    File sa
+    File reference_tgz
     File fq1
     File fq2
     String read_group = "'@RG\\tID:FLOWCELL_${sample_name}\\tSM:${sample_name}\\tPL:ILLUMINA\\tLB:LIB_${sample_name}'"
+
+    String output_disk_gb 
+    String boot_disk_gb = "10"
+    String ram_gb = "3"
+    String cpu_cores = "1"
+    String preemptible = "0"
+    String debug_dump_flag
+
     command {
         set -euo pipefail
+        ln -sT `pwd` /opt/execution
+        ln -sT `pwd`/../inputs /opt/inputs
+
         /opt/src/algutil/monitor_start.py
-        bwa mem -t 8 -R ${read_group} ${ref} ${fq1} ${fq2} | samtools view -bS -> ${sample_name}.aligned.bam
+        tar xvf ${reference_tgz}
+
+        bwa mem -t 8 -R ${read_group} ref.fasta ${fq1} ${fq2} | samtools view -bS -> ${sample_name}.aligned.bam
         /opt/src/algutil/monitor_stop.py
     }
     output {
@@ -140,8 +169,19 @@ task SortBAM {
     String picard
     String sample_name
     File aligned_bam
+
+    String output_disk_gb 
+    String boot_disk_gb = "10"
+    String ram_gb = "3"
+    String cpu_cores = "1"
+    String preemptible = "0"
+    String debug_dump_flag
+
     command {
         set -euo pipefail
+        ln -sT `pwd` /opt/execution
+        ln -sT `pwd`/../inputs /opt/inputs
+
         /opt/src/algutil/monitor_start.py
         java -Xmx8G -jar ${picard} SortSam I=${aligned_bam} O=${sample_name}.sorted.bam SO=coordinate
         /opt/src/algutil/monitor_stop.py
@@ -169,8 +209,20 @@ task MarkDuplicates {
     String picard
     String sample_name
     File sorted_bam
+
+    String output_disk_gb 
+    String boot_disk_gb = "10"
+    String ram_gb = "3"
+    String cpu_cores = "1"
+    String preemptible = "0"
+    String debug_dump_flag
+
+
     command {
         set -euo pipefail
+        ln -sT `pwd` /opt/execution
+        ln -sT `pwd`/../inputs /opt/inputs
+
         /opt/src/algutil/monitor_start.py
         java -Xmx8G -jar ${picard} MarkDuplicates I=${sorted_bam} O=${sample_name}.marked_duplicates.bam M=${sample_name}.marked_duplicates.metrics
         /opt/src/algutil/monitor_stop.py
@@ -200,8 +252,20 @@ task ReorderBAM {
     String out_bam = "${sample_name}.reordered.bam"
     File ref
     File dict
+
+    String output_disk_gb 
+    String boot_disk_gb = "10"
+    String ram_gb = "3"
+    String cpu_cores = "1"
+    String preemptible = "0"
+    String debug_dump_flag
+
+
     command {
         set -euo pipefail
+        ln -sT `pwd` /opt/execution
+        ln -sT `pwd`/../inputs /opt/inputs
+
         /opt/src/algutil/monitor_start.py
         java -Xmx8G -jar ${picard} ReorderSam I=${marked_bam} O=${out_bam} R=${ref}
         samtools index ${out_bam}

@@ -14,8 +14,6 @@ workflow gatk_indexref {
 
 task IndexReference {
     File ref_fasta
-    String picard = "/cil/shed/apps/external/picard/current/bin/picard.jar"
-
     #TODO try to autocalculate ref_name from ref_fasta input
     String ref_name
 
@@ -26,6 +24,7 @@ task IndexReference {
     String preemptible = "0"
     String debug_dump_flag
 
+    String picard = "/cil/shed/apps/external/picard/current/bin/picard.jar"
 
     command {
         set -euo pipefail
@@ -40,14 +39,13 @@ def run(cmd):
     print (cmd)
     subprocess.check_call(cmd,shell=True)
 
-run('ln ${ref_fasta} ${ref_name}.fasta')
-run('bwa index ${ref_name}.fasta')
-run('samtools faidx ${ref_name}.fasta')
-run('java -jar ${picard} CreateSequenceDictionary REFERENCE=${ref_name}.fasta O=${ref_name}.dict')
+run('ln ${ref_fasta} ref.fasta')
+run('bwa index ref.fasta')
+run('samtools faidx ref.fasta')
+run('java -jar ${picard} CreateSequenceDictionary REFERENCE=ref.fasta O=ref.dict')
 
-
-run('tar cvf ${ref_name}.tar ${ref_name}.fasta ${ref_name}.dict ${ref_name}.fasta.amb ${ref_name}.fasta.ann ${ref_name}.fasta.bwt {ref_name}.fasta.fai ${ref_name}.fasta.pac ${ref_name}.fasta.sa')
-run('gzip -c --best ${ref_name}.tar ${ref_name}.tar.gz')
+run('tar cvf ${ref_name}.tar ref.fasta ref.dict ref.fasta.amb ref.fasta.ann ref.fasta.bwt ref.fasta.fai ref.fasta.pac ref.fasta.sa')
+run('gzip -c --best ${ref_name}.tar > ${ref_name}.tgz')
 "
     echo "$python_cmd"
     python -c "$python_cmd"
@@ -72,7 +70,7 @@ run('gzip -c --best ${ref_name}.tar ${ref_name}.tar.gz')
 
     }
     output {
-        File ref_bundle = "${ref_name}.tar.gz"
+        File reference_tgz = "ref.tgz"
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
         File dstat="dstat.log"

@@ -38,3 +38,10 @@ note - reindexes reference every time. (check if indexes are conditionally creat
 tar cvPf btl_gatk_dependencies.tar --exclude .svn /cil/shed/apps/external/picard/current /seq/software/picard/1.782/ /humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar /cil/shed/apps/external/snpEff/snpEff-4.1g/snpEff.jar
 ---
 file issue file vs string for the same variable...*** 
+-------
+* need to rewire input of fasta file
+* declare vm parameters for each task. autoscale where needed.
+* put in python block, debug dump.
+* ensure output files are all set. embed name in them
+* declare params in runtime block
+* 
