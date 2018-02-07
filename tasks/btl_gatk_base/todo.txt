@@ -44,4 +44,5 @@ file issue file vs string for the same variable...***
 * put in python block, debug dump.
 * ensure output files are all set. embed name in them
 * declare params in runtime block
-* 
+* -----
+FDT issue - set permissions in pushwdl

@@ -3,12 +3,7 @@ workflow gatk_indexref {
 
     # Check's if index files exist(using .dict file as marker). Will always output path to localized reference
     # With assumption that it either exists or will be created by IndexReference.
-    call IndexReference {
-        input:
-        ref_fasta = ref_fasta,
-        ref_name = ref_name
-        output_disk_gb = IndexReference_output_disk_gb
-    }
+    call IndexReference 
 }
 
 
@@ -51,9 +46,10 @@ run('gzip -c --best ${ref_name}.tar > ${ref_name}.tgz')
     python -c "$python_cmd"
     export exit_code=$?
     echo exit code is $exit_code
+    ls
 
     # create bundle conditional on failure
-    if [[ "$debug_dump_flag" == "always" || ( "$debug_dump_flag" == "onfail" && $exit_code -ne 0 ) ]]
+    if [[ "${debug_dump_flag}" == "always" || ( "${debug_dump_flag}" == "onfail" && $exit_code -ne 0 ) ]]
     then
         echo "Creating debug bundle"
         # tar up the output directory
@@ -65,24 +61,24 @@ run('gzip -c --best ${ref_name}.tar > ${ref_name}.tgz')
     /opt/src/algutil/monitor_stop.py
 
     # exit statement must be the last line in the command block 
-    exit $exit_code
+    exit ${exit_code}
 
 
     }
     output {
-        File reference_tgz = "ref.tgz"
+        File reference_tgz = "${ref_name}.tgz"
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
         File dstat="dstat.log"
         File debug_bundle="debug_bundle.tar.gz"
+
     } runtime {
-        task_name: "IndexReference"
         docker : "gcr.io/btl-dockers/btl_gatk:1"
         memory: "${ram_gb}GB"
         cpu: "${cpu_cores}"
         disks: "local-disk ${output_disk_gb} HDD"
         bootDiskSizeGb: "${boot_disk_gb}"
-        preemptible: "${preemptible}
+        preemptible: "${preemptible}"
         
     }
     parameter_meta {
