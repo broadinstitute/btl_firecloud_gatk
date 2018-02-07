@@ -21,7 +21,7 @@ task gatk_alignbam_task {
     String ref_fasta = "ref.fasta"
     File reference_tgz
 
-    String read_group = "\\'@RG\\\\tID:FLOWCELL_${sample_name}\\\\tSM:${sample_name}\\\\tPL:ILLUMINA\\\\tLB:LIB_${sample_name}\\'"
+    String read_group = "\\'@RG\\\\\\\\tID:FLOWCELL_${sample_name}\\\\\\\\tSM:${sample_name}\\\\\\\\tPL:ILLUMINA\\\\\\\\tLB:LIB_${sample_name}\\'"
 
     String output_disk_gb 
     String boot_disk_gb = "10"
