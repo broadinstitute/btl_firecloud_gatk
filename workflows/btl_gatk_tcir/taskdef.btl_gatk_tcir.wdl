@@ -1,131 +1,110 @@
 workflow gatk_tcir {
 
-    File index_reference_out
-    File index_reference_dict
-    File index_reference_amb
-    File index_reference_ann
-    File index_reference_bwt
-    File index_reference_fai
-    File index_reference_pac
-    File index_reference_sa
-    String sample_name
+    call gatk_tcir_task
+
+}
+
+
+
+task gatk_tcir_task {
     String gatk = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
-    File bam_input
-    File bam_input_index
-
-
-    call RealignerTargetCreator {
-        input:
-        gatk = gatk,
-        ref = index_reference_out,
-        dict = index_reference_dict,
-        amb = index_reference_amb,
-        ann = index_reference_ann,
-        bwt = index_reference_bwt,
-        fai = index_reference_fai,
-        pac = index_reference_pac,
-        sa = index_reference_sa,
-        sample_name = sample_name,
-        bam_input = bam_input,
-        bam_input_index = bam_input_index
-    }
-    call IndelRealigner {
-        input:
-        gatk = gatk,
-        ref = index_reference_out,
-        dict = index_reference_dict,
-        amb = index_reference_amb,
-        ann = index_reference_ann,
-        bwt = index_reference_bwt,
-        fai = index_reference_fai,
-        pac = index_reference_pac,
-        sa = index_reference_sa,
-        sample_name = sample_name,
-        bam_input = bam_input,
-        bam_input_index = bam_input_index,
-        intervals = RealignerTargetCreator.intervals
-    }
-}
-
-
-task RealignerTargetCreator {
-    String gatk
-    File ref
-    File dict
-    File amb
-    File ann
-    File bwt
-    File fai
-    File pac
-    File sa
-    File bam_input
-    File bam_input_index
+    File in_bam
+    File in_bam_index
     String sample_name
-    String out = "${sample_name}.interval_list"
-    command {
-        set -euo pipefail
-        /opt/src/algutil/monitor_start.py
-        java -Xmx8G -jar ${gatk} -T RealignerTargetCreator -nct 1 -nt 24 -R ${ref} -I ${bam_input} -o ${out}
-        /opt/src/algutil/monitor_stop.py
+    File reference_tgz
 
-    }
-    output {
-        File intervals = out
-        File monitor_start="monitor_start.log"
-        File monitor_stop="monitor_stop.log"
-        File dstat="dstat.log"
-    } runtime {
-        task_name: "RealignerTargetCreator"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
-    }
-    parameter_meta {
-        gatk: "The absolute path to the gatk executable jar."
-        ref: "fasta file of reference genome"
-        in_bam: "The input bam for the gatk task"
-        out: "The intervals list to be used by IndelRealigner"
-    }
-}
+    String out_bam =  "${sample_name}.tcir.bam"
+    String out_bam_index =  "${out_bam}.bai"
 
-task IndelRealigner {
-    String gatk
-    File ref
-    File dict
-    File amb
-    File ann
-    File bwt
-    File fai
-    File pac
-    File sa
-    File bam_input
-    File bam_input_index
-    File intervals
-    String sample_name
-    String out = "${sample_name}.indels_realigned.bam"
+    String output_disk_gb 
+    String boot_disk_gb = "10"
+    String ram_gb = "10"
+    String cpu_cores = "1"
+    String preemptible = "0"
+    String debug_dump_flag
 
     command {
         set -euo pipefail
+        ln -sT `pwd` /opt/execution
+        ln -sT `pwd`/../inputs /opt/inputs
+
         /opt/src/algutil/monitor_start.py
-        java -Xmx4G -jar ${gatk} -T IndelRealigner -nct 1 -nt 1 -R ${ref} -I ${bam_input} -targetIntervals ${intervals} -o ${out}
-        samtools index ${out}
+        python_cmd="
+import subprocess
+def run(cmd):
+    print (cmd)
+    subprocess.check_call(cmd,shell=True)
+
+
+run('ln -s ${in_bam} in.bam')
+run('ln -s ${in_bam_index} in.bam.bai')
+
+run('echo STARTING tar xvf to unpack reference')
+run('date')
+run('tar xvf ${reference_tgz}')
+
+run('echo STARTING RealignerTargetCreator')
+run('date')
+run('java -Xmx8G -jar ${gatk} -T RealignerTargetCreator -nct 1 -nt 24 -R ref.fasta -I in.bam -o intervals.list ')
+
+
+run('echo STARTING IndelRealigner')
+run('date')
+run('java -Xmx4G -jar ${gatk} -T IndelRealigner -nct 1 -nt 1 -R ref.fasta -I in.bam -targetIntervals intervals.list -o ${out_bam}')
+
+
+run('echo STARTING index')
+run('date')
+run('samtools index ${out_bam}')
+
+run('echo DONE')
+run('date')
+"
+
+        echo "$python_cmd"
+        set +e
+        python -c "$python_cmd"
+        export exit_code=$?
+        set -e
+        echo exit code is $exit_code
+        ls
+
+        # create bundle conditional on failure of the Python section
+        if [[ "${debug_dump_flag}" == "always" || ( "${debug_dump_flag}" == "onfail" && $exit_code -ne 0 ) ]]
+        then
+            echo "Creating debug bundle"
+            # tar up the output directory
+            touch debug_bundle.tar.gz
+            tar cfz debug_bundle.tar.gz --exclude=debug_bundle.tar.gz .
+        else
+            touch debug_bundle.tar.gz
+        fi     
         /opt/src/algutil/monitor_stop.py
+
+        # exit statement must be the last line in the command block 
+        exit $exit_code
 
     }
     output {
-        File bam = "${sample_name}.indels_realigned.bam"
-        File index = "${sample_name}.indels_realigned.bam.bai"
-        String done = "done"
+        File out_bam = "${out_bam}"
+        File out_bam_index = "${out_bam_index}"
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
         File dstat="dstat.log"
+        File debug_bundle="debug_bundle.tar.gz"
     } runtime {
-        task_name: "IndelRealigner"
         docker : "gcr.io/btl-dockers/btl_gatk:1"
+        memory: "${ram_gb}GB"
+        cpu: "${cpu_cores}"
+        disks: "local-disk ${output_disk_gb} HDD"
+        bootDiskSizeGb: "${boot_disk_gb}"
+        preemptible: "${preemptible}"
     }
     parameter_meta {
-        gatk: "The absolute path to the gatk executable jar."
-        ref: "fasta file of reference genome"
-        in_bam: "The input bam for the gatk task"
-        intervals: "The intervals list to be used by IndelRealigner"
-        out: "the bam including realigned indels."
+
     }
+
 }
+
+
+

@@ -1,88 +1,116 @@
-workflow gatk_aggregate_calls {
-    File index_reference_out
-    File index_reference_dict
-    File index_reference_amb
-    File index_reference_ann
-    File index_reference_bwt
-    File index_reference_fai
-    File index_reference_pac
-    File index_reference_sa
+workflow gatk_joint_genotype {
+    call gatk_joint_genotype_task 
+}
+
+
+task gatk_joint_genotype_task {
+
     String ? extra_gg_params
-    #TODO how should intervals be wired?
-    File CreateIntervalsList_out 
-    Array[File] HaplotypeCaller_vcfs
+    Array[File] HaplotypeCaller_gvcfs
     Boolean ? all_sites
     String gatk = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
 
-    call GenotypeGVCFs {
-	    input:
+    File intervals
 
-        ref = index_reference_out,
-        dict = index_reference_dict,
-        amb = index_reference_amb,
-        ann = index_reference_ann,
-        bwt = index_reference_bwt,
-        fai = index_reference_fai,
-        pac = index_reference_pac,
-        sa = index_reference_sa,
-        extra_gg_params = extra_gg_params,
-        intervals = CreateIntervalsList_out,
-        HaplotypeCaller_vcfs = HaplotypeCaller_vcfs, # array of files
-        all_sites = all_sites,
-        gatk = gatk,
+    File reference_tgz
 
-    }
-}
+    String cohort_name
+    String vcf_out_fn = "${cohort_name}.vcf"
 
-task GenotypeGVCFs {
-	String gatk
-	File ref
-    File dict
-    File amb
-    File ann
-    File bwt
-    File fai
-    File pac
-    File sa
-	String ? extra_gg_params # If a parameter you'd like to use is missing from this task, use this term to add your own string
-	File ? intervals
-	Array[File] HaplotypeCaller_vcfs
-    Boolean ? all_sites
-    String gvcf_out = "genotypeGVCFs.vcf"
-	command {
+
+    String recalibration_plots_fn = ${sample_name}.recalibration_plots.pdf
+    String out_bam =  "${sample_name}.bqsr.bam"
+    String out_bam_index =  "${out_bam}.bai"
+
+    String output_disk_gb 
+    String boot_disk_gb = "10"
+    String ram_gb = "10"
+    String cpu_cores = "1"
+    String preemptible = "0"
+    String debug_dump_flag
+
+    command {
         set -euo pipefail
+        ln -sT `pwd` /opt/execution
+        ln -sT `pwd`/../inputs /opt/inputs
+
         /opt/src/algutil/monitor_start.py
+        python_cmd="
+import subprocess
+def run(cmd):
+    print (cmd)
+    subprocess.check_call(cmd,shell=True)
+
+run('echo STARTING tar xvf to unpack reference')
+run('date')
+run('tar xvf ${reference_tgz}')
+
+run('''\
 		java -Xmx8G -jar ${gatk} \
 			-T GenotypeGVCFs \
-			-R ${ref} \
+			-R ref.fasta \
 			${sep=" --intervals " "--intervals " + intervals} \
-			-o ${gvcf_out} \
-			-V ${sep=" -V " HaplotypeCaller_vcfs} \
+			-o ${vcf_out_fn} \
+			-V ${sep=" -V " HaplotypeCaller_gvcfs} \
 			${true="-allSites" false="" all_sites} \
 			${default="\n" extra_gg_params}
+''')
+
+run('echo DONE')
+run('date')
+"
+
+        echo "$python_cmd"
+        set +e
+        python -c "$python_cmd"
+        export exit_code=$?
+        set -e
+        echo exit code is $exit_code
+        ls
+
+        # create bundle conditional on failure of the Python section
+        if [[ "${debug_dump_flag}" == "always" || ( "${debug_dump_flag}" == "onfail" && $exit_code -ne 0 ) ]]
+        then
+            echo "Creating debug bundle"
+            # tar up the output directory
+            touch debug_bundle.tar.gz
+            tar cfz debug_bundle.tar.gz --exclude=debug_bundle.tar.gz .
+        else
+            touch debug_bundle.tar.gz
+        fi     
         /opt/src/algutil/monitor_stop.py
 
-	}
-	output {
-		#To track additional outputs from your task, please manually add them below
-		File out = gvcf_out
-		String done = "done"
+        # exit statement must be the last line in the command block 
+        exit $exit_code
+
+    }
+    output {
+        File vcf_out = "${vcf_out_fn}"
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
         File dstat="dstat.log"
+        File debug_bundle="debug_bundle.tar.gz"
     } runtime {
-        task_name: "GenotypeGVCFs"
         docker : "gcr.io/btl-dockers/btl_gatk:1"
+        memory: "${ram_gb}GB"
+        cpu: "${cpu_cores}"
+        disks: "local-disk ${output_disk_gb} HDD"
+        bootDiskSizeGb: "${boot_disk_gb}"
+        preemptible: "${preemptible}"
     }
-	parameter_meta {
-		gatk: "Executable jar for the GenomeAnalysisTK"
-		ref: "fasta file of reference genome"
-		extra_gg_params: "An optional parameter which allows the user to specify additions to the command line at run time"
-		out: "File to which variants should be written"
-		ploidy: "Ploidy (number of chromosomes) per sample. For pooled data, set to (Number of samples in each pool * Sample Ploidy)."
-		variant_files: "One or more input gVCF files"
-		intervals: "One or more genomic intervals over which to operate"
-		all_sites: "Include loci found to be non-variant after genotyping"
-		gcvf_out: "The output vcf of GenotypeGVCFs"
-	}
+    parameter_meta {
+        picard: "The absolute path to the picard jar to execute."
+        in_bam: "The bam file to convert to fastq."
+        sample_dir: "The sample-specific directory inside output_dir for each sample."
+        sample_name: "The name of the sample as indicated by the 1st column of the gatk.samples_file json input."
+        out_fq1: "The fastq file containing the first read of each pair."
+        out_fq2: "The fastq file containing the second read of each pair"
+    }
+
 }
+
+
+
+
+
+

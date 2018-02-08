@@ -1,19 +1,15 @@
 workflow gatk_vqsr{
+    # https://software.broadinstitute.org/gatk/documentation/article.php?id=1259
+    call gatk_vqsr_task
+}
 
+
+task gatk_vqsr_task {
     String gatk = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
+    File reference_tgz
+    File ? intervals
 
-    File index_reference_out
-    File index_reference_dict
-    File index_reference_amb
-    File index_reference_ann
-    File index_reference_bwt
-    File index_reference_fai
-    File index_reference_pac
-    File index_reference_sa
-    String sample_name
-    #TODO how should intervals list be wired?
-    File CreateIntervalsList_out 
-    Array[File] HaplotypeCaller_vcfs
+    File genotype_caller_vcf
     Array[String] snp_resource
     Array[String] indel_resource
     Array[String] snp_annotation
@@ -28,210 +24,143 @@ workflow gatk_vqsr{
 
 
 
-    call VariantRecalibrator as SnpRecalibration {
-        input:
-        gatk = gatk,
-        ref = index_reference_out,
-        dict = index_reference_dict,
-        amb = index_reference_amb,
-        ann = index_reference_ann,
-        bwt = index_reference_bwt,
-        fai = index_reference_fai,
-        pac = index_reference_pac,
-        sa = index_reference_sa,
-        intervals = CreateIntervalsList_out,
-        task_input = HaplotypeCaller_vcfs,
-        resource = snp_resource,
-        annotation = snp_annotation,
-        mode = "snp",
-        max_gaussians = snp_max_gaussians,
-        mq_cap = mq_cap_snp,
-        extra_vr_params = extra_vr_params
-    }
+    String output_disk_gb 
+    String boot_disk_gb = "10"
+    String ram_gb = "10"
+    String cpu_cores = "1"
+    String preemptible = "0"
+    String debug_dump_flag
 
-    call ApplyRecalibration as ApplySnpRecalibration {
-        input:
-        gatk = gatk,
-        ref = index_reference_out,
-        dict = index_reference_dict,
-        amb = index_reference_amb,
-        ann = index_reference_ann,
-        bwt = index_reference_bwt,
-        fai = index_reference_fai,
-        pac = index_reference_pac,
-        sa = index_reference_sa,
-        vcf_in = HaplotypeCaller_vcfs,
-        ts_filter = ts_filter_snp,
-        recal_file = SnpRecalibration.recal,
-        tranches = SnpRecalibration.tranches,
-        mode = "snp",
-        prefix = "snp"
-    }
-    call VariantRecalibrator as IndelRecalibration {
-        input:
-        gatk = gatk,
-        ref = index_reference_out,
-        dict = index_reference_dict,
-        amb = index_reference_amb,
-        ann = index_reference_ann,
-        bwt = index_reference_bwt,
-        fai = index_reference_fai,
-        pac = index_reference_pac,
-        sa = index_reference_sa,
-        intervals = CreateIntervalsList_out,
-        task_input = ApplySnpRecalibration.out,
-        resource = indel_resource,
-        mode = "indel",
-        max_gaussians = indel_max_gaussians,
-        mq_cap = mq_cap_indel,
-        annotation = indel_annotation,
-        extra_vr_params = extra_vr_params
-    }
-    call ApplyRecalibration as ApplyIndelRecalibration {
-        input:
-        gatk = gatk,
-        ref = index_reference_out,
-        dict = index_reference_dict,
-        amb = index_reference_amb,
-        ann = index_reference_ann,
-        bwt = index_reference_bwt,
-        fai = index_reference_fai,
-        pac = index_reference_pac,
-        sa = index_reference_sa,
-        vcf_in = ApplySnpRecalibration.out,
-        ts_filter = ts_filter_indel,
-        recal_file = IndelRecalibration.recal,
-        tranches = IndelRecalibration.tranches,
-        mode = "indel",
-        prefix = "snp_indel"
-    }
-}
-
-
-
-# https://software.broadinstitute.org/gatk/documentation/article.php?id=1259
-task VariantRecalibrator {
-	String gatk
-	File ref
-    File dict
-    File amb
-    File ann
-    File bwt
-    File fai
-    File pac
-    File sa
-	String mode
-	File ? intervals
-	File task_input
-    Array[String] resource
-    Array[String] annotation
-    Int ? max_gaussians
-    Int ? mq_cap
-	String tranches_file = "${mode}.tranches"
-    String recal_file = "${mode}.recal"
-    String rscript_file = "${mode}.plots.R"
-	String ? extra_vr_params # If a parameter you'd like to use is missing from this task, use this term to add your own string
-	command {
-        set -euo pipefail
-        /opt/src/algutil/monitor_start.py
-		java -Xmx8G -jar ${gatk} \
-			-T VariantRecalibrator \
-			-R ${ref} \
-			${default="" "--intervals " + intervals} \
-			-input ${task_input} \
-			-mode ${mode} \
-            -resource:${sep=" -resource:" resource} \
-			-recalFile ${recal_file} \
-			-tranchesFile ${tranches_file} \
-			-rscriptFile ${rscript_file} \
-			-an ${sep=" -an " annotation} \
-			--maxGaussians ${max_gaussians} \
-			--MQCapForLogitJitterTransform ${mq_cap}
-			${default="\n" extra_vr_params}
-        /opt/src/algutil/monitor_stop.py
-
-	}
-
-	output {
-		#To track additional outputs from your task, please manually add them below
-		File out = task_input
-		File tranches = tranches_file
-		File recal = recal_file
-		File rscript = rscript_file
-		String done = "done"
-        File monitor_start="monitor_start.log"
-        File monitor_stop="monitor_stop.log"
-        File dstat="dstat.log"
-    } runtime {
-        task_name: "VariantRecalibrator"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
-    }
-	parameter_meta {
-		gatk: "Executable jar for the GenomeAnalysisTK"
-		ref: "fasta file of reference genome"
-		extra_vr_params: "An optional parameter which allows the user to specify additions to the command line at run time"
-		aggregate: "Additional raw input variants to be used in building the model"
-		task_input: "One or more VCFs of raw input variants to be recalibrated"
-		recal_file: "The output recal file used by ApplyRecalibration"
-		resource: "A list of sites for which to apply a prior probability of being correct but which aren't used by the algorithm (training and truth sets are required to run)"
-		tranches_file: "The output tranches file used by ApplyRecalibration"
-		intervals: "One or more genomic intervals over which to operate"
-		mode: "The mode for recalibration (indel or snp)."
-		annotation: "An array of annotations to use for calculations."
-		max_gaussians: "Max number of Gaussians for the positive model"
-		mq_cap: "Apply logit transform and jitter to MQ values"
-	}
-}
-
-task ApplyRecalibration {
-    String gatk
-    File ref
-    File dict
-    File amb
-    File ann
-    File bwt
-    File fai
-    File pac
-    File sa
-    File vcf_in
-    Float ts_filter
-    File recal_file
-    File tranches
-    String mode
-    String prefix
-    String vcf_out = "${prefix}.recalibrated.filtered.vcf"
     command {
         set -euo pipefail
+        ln -sT `pwd` /opt/execution
+        ln -sT `pwd`/../inputs /opt/inputs
+
         /opt/src/algutil/monitor_start.py
+        python_cmd="
+import subprocess
+def run(cmd):
+    print (cmd)
+    subprocess.check_call(cmd,shell=True)
+
+
+run('echo STARTING tar xvf to unpack reference')
+run('date')
+run('tar xvf ${reference_tgz}')
+
+run('echo STARTING VariantRecalibrator-SNP')
+run('date')
+run('''\
+		java -Xmx8G -jar ${gatk} \
+			-T VariantRecalibrator \
+			-R ref.fasta \
+			${default="" "--intervals " + intervals} \
+			-input ${genotype_caller_vcf} \
+			-mode "snp" \
+            -resource:${sep=" -resource:" snp_resource} \
+			-recalFile snp.recal \
+			-tranchesFile snp.tranches \
+			-rscriptFile snp.plots.R \
+			-an ${sep=" -an " snp_annotation} \
+			--maxGaussians ${snp_max_gaussians} \
+			--MQCapForLogitJitterTransform ${mq_cap_snp}
+			${default="\n" extra_vr_params}
+''')
+
+run('echo STARTING ApplyRecalibration-SNP')
+run('date')
+run('''\
 		java -Xmx8G -jar ${gatk} \
             -T ApplyRecalibration \
-            -R ${ref} \
-            -input ${vcf_in} \
-            --ts_filter_level ${ts_filter} \
-            -tranchesFile ${tranches} \
-            -recalFile ${recal_file} \
-            -mode ${mode} \
-            -o ${prefix}.recalibrated.filtered.vcf
+            -R ref.fasta \
+            -input ${genotype_caller_vcf} \
+            --ts_filter_level ${ts_filter_snp} \
+            -tranchesFile snp.tranches \
+            -recalFile snp.recal \
+            -mode "snp" \
+            -o snp.recalibrated.filtered.vcf
+''')
+
+run('echo STARTING VariantRecalibrator-INDEL')
+run('date')
+run('''\
+		java -Xmx8G -jar ${gatk} \
+			-T VariantRecalibrator \
+			-R ref.fasta \
+			${default="" "--intervals " + intervals} \
+			-input snp.recalibrated.filtered.vcf \
+			-mode "indel" \
+            -resource:${sep=" -resource:" indel_resource} \
+			-recalFile indel.recal \
+			-tranchesFile indel.tranches \
+			-rscriptFile indel.plots.R \
+			-an ${sep=" -an " indel_annotation} \
+			--maxGaussians ${indel_max_gaussians} \
+			--MQCapForLogitJitterTransform ${mq_cap_indel}
+			${default="\n" extra_vr_params}
+''')
+
+run('echo STARTING ApplyRecalibration-INDEL')
+run('date')
+run('''\
+		java -Xmx8G -jar ${gatk} \
+            -T ApplyRecalibration \
+            -R ref.fasta \
+            -input snp.recalibrated.filtered.vcf \
+            --ts_filter_level ${ts_filter_indel} \
+            -tranchesFile indel.tranches \
+            -recalFile indel.recal \
+            -mode "indel" \
+            -o snp_indel.recalibrated.filtered.vcf
+''')
+
+run('echo DONE')
+run('date')
+"
+
+        echo "$python_cmd"
+        set +e
+        python -c "$python_cmd"
+        export exit_code=$?
+        set -e
+        echo exit code is $exit_code
+        ls
+
+        # create bundle conditional on failure of the Python section
+        if [[ "${debug_dump_flag}" == "always" || ( "${debug_dump_flag}" == "onfail" && $exit_code -ne 0 ) ]]
+        then
+            echo "Creating debug bundle"
+            # tar up the output directory
+            touch debug_bundle.tar.gz
+            tar cfz debug_bundle.tar.gz --exclude=debug_bundle.tar.gz .
+        else
+            touch debug_bundle.tar.gz
+        fi     
         /opt/src/algutil/monitor_stop.py
 
-		}
+        # exit statement must be the last line in the command block 
+        exit $exit_code
+
+    }
     output {
-        File out = "${prefix}.recalibrated.filtered.vcf"
-        String done = "done"
+        File out_bam = "${out_bam}"
+        File out_bam_index = "${out_bam_index}"
+        File recalibration_plots = "${recalibration_plots_fn}"
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
         File dstat="dstat.log"
+        File debug_bundle="debug_bundle.tar.gz"
     } runtime {
-        task_name: "ApplyRecalibration"
         docker : "gcr.io/btl-dockers/btl_gatk:1"
+        memory: "${ram_gb}GB"
+        cpu: "${cpu_cores}"
+        disks: "local-disk ${output_disk_gb} HDD"
+        bootDiskSizeGb: "${boot_disk_gb}"
+        preemptible: "${preemptible}"
     }
     parameter_meta {
-		gatk: "Executable jar for the GenomeAnalysisTK"
-		ref: "fasta file of reference genome"
-		vcf_in: "The raw input variants to be recalibrated."
-		ts_filter: "The truth sensitivity level at which to start filtering"
-		recal_file: "The output recal file used by ApplyRecalibration"
-		mode: "Recalibration mode to employ: 1.) SNP for recalibrating only SNPs (emitting indels untouched in the output VCF); 2.) INDEL for indels; and 3.) BOTH for recalibrating both SNPs and indels simultaneously."
-        vcf_out: "The output filtered and recalibrated VCF file in which each variant is annotated with its VQSLOD value"
+
     }
+
 }
+

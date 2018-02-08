@@ -1,243 +1,266 @@
 workflow gatk_filtration {
+# http://gatkforums.broadinstitute.org/gatk/discussion/2806/howto-apply-hard-filters-to-a-call-set
 
-    File index_reference_out
-    File index_reference_dict
-    File index_reference_amb
-    File index_reference_ann
-    File index_reference_bwt
-    File index_reference_fai
-    File index_reference_pac
-    File index_reference_sa
-    String sample_name
-    String gatk = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
+
 
     File ? vqsr_vcf
     File ? genotype_vcf
 
     File sv_vcf = select_first([vqsr_vcf, genotype_vcf])
+
+
     String filtration_type #combined or variant
-    String filter_expression
-    String indel_filter_expression
-
-       # File snpeff_vcf = select_first([CombinedFiltration.out, CombineVariants.out])
-
 
     if (filtration_type == "combined") {
-        call HardFiltration as CombinedFiltration {
-            input:
-            gatk = gatk,
-            ref = index_reference_out,
-            dict = index_reference_dict,
-            amb = index_reference_amb,
-            ann = index_reference_ann,
-            bwt = index_reference_bwt,
-            fai = index_reference_fai,
-            pac = index_reference_pac,
-            sa = index_reference_sa,
-            vcf_in = sv_vcf,
-            variant_type = "ALL",
-            filter_expression = filter_expression
-        }
+        call gatk_combined_filtration_task
     }
     if (filtration_type == "variant") {
-        call SelectVariants as SelectSnps{
-            input:
-            gatk = gatk,
-            ref = index_reference_out,
-            dict = index_reference_dict,
-            amb = index_reference_amb,
-            ann = index_reference_ann,
-            bwt = index_reference_bwt,
-            fai = index_reference_fai,
-            pac = index_reference_pac,
-            sa = index_reference_sa,
-            vcf_in = sv_vcf,
-            mode = "SNP"
-        }
-        call HardFiltration as FilterSnps{
-            input:
-            gatk = gatk,
-            ref = index_reference_out,
-            dict = index_reference_dict,
-            amb = index_reference_amb,
-            ann = index_reference_ann,
-            bwt = index_reference_bwt,
-            fai = index_reference_fai,
-            pac = index_reference_pac,
-            sa = index_reference_sa,
-            variant_type = "SNPs",
-            filter_expression = filter_expression
-        }
-        call SelectVariants as SelectIndels{
-            input:
-            gatk = gatk,
-            ref = index_reference_out,
-            dict = index_reference_dict,
-            amb = index_reference_amb,
-            ann = index_reference_ann,
-            bwt = index_reference_bwt,
-            fai = index_reference_fai,
-            pac = index_reference_pac,
-            sa = index_reference_sa,
-            vcf_in = sv_vcf,
-            mode = "INDEL"
-        }
-        call HardFiltration as FilterIndels{
-            input:
-            gatk = gatk,
-            ref = index_reference_out,
-            dict = index_reference_dict,
-            amb = index_reference_amb,
-            ann = index_reference_ann,
-            bwt = index_reference_bwt,
-            fai = index_reference_fai,
-            pac = index_reference_pac,
-            sa = index_reference_sa,
-            vcf_in = SelectIndels.out,
-            variant_type = "INDELS",
-            filter_expression = indel_filter_expression
-        }
-        call CombineVariants {
-            input:
-            gatk = gatk,
-            ref = index_reference_out,
-            dict = index_reference_dict,
-            amb = index_reference_amb,
-            ann = index_reference_ann,
-            bwt = index_reference_bwt,
-            fai = index_reference_fai,
-            pac = index_reference_pac,
-            sa = index_reference_sa,
-            vcf1 = FilterSnps.out,
-            vcf2 = FilterIndels.out
-
-        }
+        call gatk_variant_filtration_task
     }
 }
 
 
-# http://gatkforums.broadinstitute.org/gatk/discussion/2806/howto-apply-hard-filters-to-a-call-set
-task SelectVariants {
-    String gatk
-    File ref
-    File dict
-    File amb
-    File ann
-    File bwt
-    File fai
-    File pac
-    File sa
-    File vcf_in
-    String mode
+
+
+task gatk_combined_filtration_task {
+    String gatk = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
+    String sample_name
+    File reference_tgz
+    String filter_expression
+
+    String vcf_out = "${sample_name}.ALL.filtered.vcf"
+
+    String output_disk_gb 
+    String boot_disk_gb = "10"
+    String ram_gb = "10"
+    String cpu_cores = "1"
+    String preemptible = "0"
+    String debug_dump_flag
+
     command {
         set -euo pipefail
+        ln -sT `pwd` /opt/execution
+        ln -sT `pwd`/../inputs /opt/inputs
+
         /opt/src/algutil/monitor_start.py
+        python_cmd="
+import subprocess
+def run(cmd):
+    print (cmd)
+    subprocess.check_call(cmd,shell=True)
+
+
+
+run('echo STARTING tar xvf to unpack reference')
+run('date')
+run('tar xvf ${reference_tgz}')
+
+run('echo STARTING VariantFiltration')
+run('date')
+run('''\
+        java -Xmx8G -jar ${gatk} \
+            -T VariantFiltration \
+            -R ref.fasta \
+            -V ${sv_vcf} \
+            --filterExpression '${filter_expression}' \
+            --filterName my_variant_filter \
+            -o ${vcf_out}
+''')
+
+
+run('echo DONE')
+run('date')
+"
+
+        echo "$python_cmd"
+        set +e
+        python -c "$python_cmd"
+        export exit_code=$?
+        set -e
+        echo exit code is $exit_code
+        ls
+
+        # create bundle conditional on failure of the Python section
+        if [[ "${debug_dump_flag}" == "always" || ( "${debug_dump_flag}" == "onfail" && $exit_code -ne 0 ) ]]
+        then
+            echo "Creating debug bundle"
+            # tar up the output directory
+            touch debug_bundle.tar.gz
+            tar cfz debug_bundle.tar.gz --exclude=debug_bundle.tar.gz .
+        else
+            touch debug_bundle.tar.gz
+        fi     
+        /opt/src/algutil/monitor_stop.py
+
+        # exit statement must be the last line in the command block 
+        exit $exit_code
+
+    }
+    output {
+        File vcf_out = "${vcf_out}"
+        File monitor_start="monitor_start.log"
+        File monitor_stop="monitor_stop.log"
+        File dstat="dstat.log"
+        File debug_bundle="debug_bundle.tar.gz"
+    } runtime {
+        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        memory: "${ram_gb}GB"
+        cpu: "${cpu_cores}"
+        disks: "local-disk ${output_disk_gb} HDD"
+        bootDiskSizeGb: "${boot_disk_gb}"
+        preemptible: "${preemptible}"
+    }
+    parameter_meta {
+
+    }
+
+}
+
+task gatk_variant_filtration_task {
+    String gatk = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
+    String sample_name
+    File reference_tgz
+    String snp_filter_expression
+    String indel_filter_expression
+
+    String vcf_out = "${sample_name}.variant.filtered.vcf"
+
+
+    String output_disk_gb 
+    String boot_disk_gb = "10"
+    String ram_gb = "10"
+    String cpu_cores = "1"
+    String preemptible = "0"
+    String debug_dump_flag
+
+    command {
+        set -euo pipefail
+        ln -sT `pwd` /opt/execution
+        ln -sT `pwd`/../inputs /opt/inputs
+
+        /opt/src/algutil/monitor_start.py
+        python_cmd="
+import subprocess
+def run(cmd):
+    print (cmd)
+    subprocess.check_call(cmd,shell=True)
+
+
+
+run('echo STARTING tar xvf to unpack reference')
+run('date')
+run('tar xvf ${reference_tgz}')
+
+run('echo STARTING SelectVariants-SNP')
+run('date')
+run('''\
         java -Xmx8G -jar ${gatk} \
             -T SelectVariants \
             -R ${ref} \
             -V ${vcf_in} \
-            -selectType ${mode} \
-            -o select${mode}.vcf
-        /opt/src/algutil/monitor_stop.py
+            -selectType SNP \
+            -o selectSNP.vcf
+''')
 
-    }
-    output {
-        File out = "select${mode}.vcf"
-        String done = "Done"
-        File monitor_start="monitor_start.log"
-        File monitor_stop="monitor_stop.log"
-        File dstat="dstat.log"
-    } runtime {
-        task_name: "SelectVariants"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
-    }
-    parameter_meta {
-        gatk: "Executable jar for the GenomeAnalysisTK"
-        ref: "fasta file of reference genome"
-        vcf_in: "The input variants file."
-        vcf_out: "The output variants file."
-        }
-}
 
-task HardFiltration {
-    String gatk
-    File ref
-    File dict
-    File amb
-    File ann
-    File bwt
-    File fai
-    File pac
-    File sa
-    File vcf_in
-    String variant_type
-    String vcf_out = "filtered_${variant_type}.vcf"
-    String filter_expression
-    command {
-        set -euo pipefail
-        /opt/src/algutil/monitor_start.py
+run('echo STARTING VariantFiltration-SNP')
+run('date')
+run('''\
         java -Xmx8G -jar ${gatk} \
             -T VariantFiltration \
+            -R ref.fasta \
+            -V selectSNP.vcf \
+            --filterExpression '${snp_filter_expression}' \
+            --filterName my_variant_filter \
+            -o filtered_SNPs.vcf
+''')
+
+run('echo STARTING SelectVariants-INDEL')
+run('date')
+run('''\
+        java -Xmx8G -jar ${gatk} \
+            -T SelectVariants \
             -R ${ref} \
             -V ${vcf_in} \
-            --filterExpression "${filter_expression}" \
-            --filterName "my_variant_filter" \
-            -o ${vcf_out}
-        /opt/src/algutil/monitor_stop.py
+            -selectType INDEL \
+            -o selectINDEL.vcf
+''')
 
-    }
-    output {
-        File out = vcf_out
-        String done = "done"
-        File monitor_start="monitor_start.log"
-        File monitor_stop="monitor_stop.log"
-        File dstat="dstat.log"
-    } runtime {
-        task_name: "HardFiltration"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
-    }
-    parameter_meta {
-        gatk: "Executable jar for the GenomeAnalysisTK"
-        ref: "fasta file of reference genome"
-        vcf_in: "The input variants file."
-        vcf_out: "The output variants file."
-        filter_expression: "The user-defined expressions to indicate which variants to filter."
-    }
-}
 
-task CombineVariants {
-    String gatk
-    File ref
-    File dict
-    File amb
-    File ann
-    File bwt
-    File fai
-    File pac
-    File sa
-    File vcf1
-    File vcf2
-    String outfile = "filtered.combined.vcf"
-    command {
-        set -euo pipefail
-        /opt/src/algutil/monitor_start.py
+run('echo STARTING VariantFiltration-INDEL')
+run('date')
+run('''\
+        java -Xmx8G -jar ${gatk} \
+            -T VariantFiltration \
+            -R ref.fasta \
+            -V selectINDEL.vcf \
+            --filterExpression '${indel_filter_expression}' \
+            --filterName my_variant_filter \
+            -o filtered_INDELs.vcf
+''')
+
+
+run('echo STARTING VariantFiltration-INDEL')
+run('date')
+run('''\
         java -jar -Xmx8G ${gatk} \
             -T CombineVariants \
-            -R ${ref} \
-            --variant ${vcf1} \
-            --variant ${vcf2} \
-            -o ${outfile} \
+            -R ref.fasta \
+            --variant filtered_SNPs.vcf \
+            --variant filtered_INDELs.vcf \
+            -o ${vcf_out} \
             -genotypeMergeOptions UNIQUIFY
+''')
+
+
+
+run('echo DONE')
+run('date')
+"
+
+        echo "$python_cmd"
+        set +e
+        python -c "$python_cmd"
+        export exit_code=$?
+        set -e
+        echo exit code is $exit_code
+        ls
+
+        # create bundle conditional on failure of the Python section
+        if [[ "${debug_dump_flag}" == "always" || ( "${debug_dump_flag}" == "onfail" && $exit_code -ne 0 ) ]]
+        then
+            echo "Creating debug bundle"
+            # tar up the output directory
+            touch debug_bundle.tar.gz
+            tar cfz debug_bundle.tar.gz --exclude=debug_bundle.tar.gz .
+        else
+            touch debug_bundle.tar.gz
+        fi     
         /opt/src/algutil/monitor_stop.py
 
-    } runtime {
-        task_name: "CombineVariants"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        # exit statement must be the last line in the command block 
+        exit $exit_code
+
     }
     output {
-        File out = outfile
+        File vcf_out = "${vcf_out}"
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
         File dstat="dstat.log"
+        File debug_bundle="debug_bundle.tar.gz"
+    } runtime {
+        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        memory: "${ram_gb}GB"
+        cpu: "${cpu_cores}"
+        disks: "local-disk ${output_disk_gb} HDD"
+        bootDiskSizeGb: "${boot_disk_gb}"
+        preemptible: "${preemptible}"
     }
+    parameter_meta {
+
+    }
+
 }
+
+
+
