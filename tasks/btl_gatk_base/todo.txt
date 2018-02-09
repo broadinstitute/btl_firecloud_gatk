@@ -46,3 +46,15 @@ file issue file vs string for the same variable...***
 * declare params in runtime block
 * -----
 FDT issue - set permissions in pushwdl
+
+--------------------------
+--------------------------
+* pull create intervals list out into a one-per-cohort block
+
+
+-------
+-------
+* Get everything running in one docker first. Consider splitting into multiple dockers later (somewhat due to loadtime, more due to decoupled versioning)
+* Inline serial workflows into one WDL task, for less overall code and fewer moving parts.  This does not degrade parallelization.  Split things apart when they are usable as independent units, or when there is independent versioning.
+* Adding code to drop symlinks to input and execution directories, for ease when logging into running docker
+* adding python block plus tarball on fail code - python easier when doing more complicated things, and is a block that can be used to determine exit code and subsequent tarfile dumping.
