@@ -98,10 +98,12 @@ run('date')
     }
     output {
         File vcf_out = "${vcf_out}"
+        String filtration_type_out = "${filtration_type}"
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
         File dstat="dstat.log"
         File debug_bundle="debug_bundle.tar.gz"
+
     } runtime {
         docker : "gcr.io/btl-dockers/btl_gatk:1"
         memory: "${ram_gb}GB"
@@ -159,7 +161,7 @@ run('''\
             -R ${ref} \
             -V ${vcf_in} \
             -selectType SNP \
-            -o selectSNP.vcf
+            -o selectSNPs.vcf
 ''')
 
 
@@ -169,7 +171,7 @@ run('''\
         java -Xmx8G -jar ${gatk} \
             -T VariantFiltration \
             -R ref.fasta \
-            -V selectSNP.vcf \
+            -V selectSNPs.vcf \
             --filterExpression '${snp_filter_expression}' \
             --filterName my_variant_filter \
             -o filtered_SNPs.vcf
@@ -183,7 +185,7 @@ run('''\
             -R ${ref} \
             -V ${vcf_in} \
             -selectType INDEL \
-            -o selectINDEL.vcf
+            -o selectINDELs.vcf
 ''')
 
 
@@ -193,7 +195,7 @@ run('''\
         java -Xmx8G -jar ${gatk} \
             -T VariantFiltration \
             -R ref.fasta \
-            -V selectINDEL.vcf \
+            -V selectINDELs.vcf \
             --filterExpression '${indel_filter_expression}' \
             --filterName my_variant_filter \
             -o filtered_INDELs.vcf

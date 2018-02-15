@@ -10,7 +10,7 @@ task gatk_joint_genotype_task {
     Boolean ? all_sites
     String gatk = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
 
-    File intervals
+    #File intervals
 
     File reference_tgz
 
@@ -18,9 +18,7 @@ task gatk_joint_genotype_task {
     String vcf_out_fn = "${cohort_name}.vcf"
 
 
-    String recalibration_plots_fn = ${sample_name}.recalibration_plots.pdf
-    String out_bam =  "${sample_name}.bqsr.bam"
-    String out_bam_index =  "${out_bam}.bai"
+
 
     String output_disk_gb 
     String boot_disk_gb = "10"
@@ -45,15 +43,17 @@ run('echo STARTING tar xvf to unpack reference')
 run('date')
 run('tar xvf ${reference_tgz}')
 
+# add back in when actually scattering haplotype caller
+#			${sep=" --intervals " "--intervals " + intervals} \
+
 run('''\
-		java -Xmx8G -jar ${gatk} \
-			-T GenotypeGVCFs \
-			-R ref.fasta \
-			${sep=" --intervals " "--intervals " + intervals} \
-			-o ${vcf_out_fn} \
-			-V ${sep=" -V " HaplotypeCaller_gvcfs} \
-			${true="-allSites" false="" all_sites} \
-			${default="\n" extra_gg_params}
+        java -Xmx8G -jar ${gatk} \
+            -T GenotypeGVCFs \
+            -R ref.fasta \
+            -o ${vcf_out_fn} \
+            -V ${sep=" -V " HaplotypeCaller_gvcfs} \
+            ${true="-allSites" false="" all_sites} \
+            ${default="\n" extra_gg_params}
 ''')
 
 run('echo DONE')

@@ -10,6 +10,7 @@ task gatk_vqsr_task {
     File ? intervals
 
     File genotype_caller_vcf
+    #TODO make sure these array args are working
     Array[String] snp_resource
     Array[String] indel_resource
     Array[String] snp_annotation
@@ -50,27 +51,27 @@ run('tar xvf ${reference_tgz}')
 
 run('echo STARTING VariantRecalibrator-SNP')
 run('date')
+#			${default="" "--intervals " + intervals} \
 run('''\
-		java -Xmx8G -jar ${gatk} \
-			-T VariantRecalibrator \
-			-R ref.fasta \
-			${default="" "--intervals " + intervals} \
-			-input ${genotype_caller_vcf} \
-			-mode "snp" \
+        java -Xmx8G -jar ${gatk} \
+            -T VariantRecalibrator \
+            -R ref.fasta \
+            -input ${genotype_caller_vcf} \
+            -mode snp \
+            -recalFile snp.recal \
+            -tranchesFile snp.tranches \
+            -rscriptFile snp.plots.R \
             -resource:${sep=" -resource:" snp_resource} \
-			-recalFile snp.recal \
-			-tranchesFile snp.tranches \
-			-rscriptFile snp.plots.R \
-			-an ${sep=" -an " snp_annotation} \
-			--maxGaussians ${snp_max_gaussians} \
-			--MQCapForLogitJitterTransform ${mq_cap_snp}
-			${default="\n" extra_vr_params}
+            -an ${sep=" -an " snp_annotation} \
+            --maxGaussians ${snp_max_gaussians} \
+            --MQCapForLogitJitterTransform ${mq_cap_snp}
+            ${default="\n" extra_vr_params}
 ''')
 
 run('echo STARTING ApplyRecalibration-SNP')
 run('date')
 run('''\
-		java -Xmx8G -jar ${gatk} \
+        java -Xmx8G -jar ${gatk} \
             -T ApplyRecalibration \
             -R ref.fasta \
             -input ${genotype_caller_vcf} \
@@ -83,27 +84,27 @@ run('''\
 
 run('echo STARTING VariantRecalibrator-INDEL')
 run('date')
+#			${default="" "--intervals " + intervals} \
 run('''\
-		java -Xmx8G -jar ${gatk} \
-			-T VariantRecalibrator \
-			-R ref.fasta \
-			${default="" "--intervals " + intervals} \
-			-input snp.recalibrated.filtered.vcf \
-			-mode "indel" \
+        java -Xmx8G -jar ${gatk} \
+            -T VariantRecalibrator \
+            -R ref.fasta \
+            -input snp.recalibrated.filtered.vcf \
+            -mode "indel" \
+            -recalFile indel.recal \
+            -tranchesFile indel.tranches \
+            -rscriptFile indel.plots.R \
             -resource:${sep=" -resource:" indel_resource} \
-			-recalFile indel.recal \
-			-tranchesFile indel.tranches \
-			-rscriptFile indel.plots.R \
-			-an ${sep=" -an " indel_annotation} \
-			--maxGaussians ${indel_max_gaussians} \
-			--MQCapForLogitJitterTransform ${mq_cap_indel}
-			${default="\n" extra_vr_params}
+            -an ${sep=" -an " indel_annotation} \
+            --maxGaussians ${indel_max_gaussians} \
+            --MQCapForLogitJitterTransform ${mq_cap_indel}
+            ${default="\n" extra_vr_params}
 ''')
 
 run('echo STARTING ApplyRecalibration-INDEL')
 run('date')
 run('''\
-		java -Xmx8G -jar ${gatk} \
+        java -Xmx8G -jar ${gatk} \
             -T ApplyRecalibration \
             -R ref.fasta \
             -input snp.recalibrated.filtered.vcf \

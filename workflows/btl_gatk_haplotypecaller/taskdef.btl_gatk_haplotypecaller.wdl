@@ -22,7 +22,7 @@ task gatk_haplotypecaller_task {
     #File in_bam_index
     String sample_name
 
-    Float interval_size
+    #Float interval_size
     File ? bqsr_file
     String ? ploidy
     String ? erc
@@ -63,26 +63,29 @@ run('echo STARTING tar xvf to unpack reference')
 run('date')
 run('tar xvf ${reference_tgz}')
 
-
-run('''\
-python /opt/src/intervals_creator.py -r ref.fasta \
-        -i ${interval_size} > intervals.list
-''')
+# Add intervals back in when actually scattering
+#
+#run('''\
+#python /opt/src/intervals_creator.py \
+#    -r ref.fasta \
+#    -i ${interval_size} \
+#    > intervals.list
+#''')
+#			--intervals intervals.list \
+#			--interval_padding 100 \
 
 run('''\
         java -Xmx8G -jar ${gatk} \
-			-T HaplotypeCaller \
-			-nt 1 \
-			-R ref.fasta \
-			--input_file ${in_bam} \
-			--intervals intervals.list \
-			${"-BQSR " + bqsr_file} \
-			-ERC ${default="GVCF" erc} \
-			-ploidy ${default="2" ploidy} \
-			--interval_padding 100 \
-			-o ${out_gvcf} \
-			-variant_index_type LINEAR \
-			-variant_index_parameter 128000 \
+            -T HaplotypeCaller \
+            -nt 1 \
+            -R ref.fasta \
+            --input_file ${in_bam} \
+            ${"-BQSR " + bqsr_file} \
+            -ERC ${default="GVCF" erc} \
+            -ploidy ${default="2" ploidy} \
+            -o ${out_gvcf} \
+            -variant_index_type LINEAR \
+            -variant_index_parameter 128000 \
             ${default="\n" extra_hc_params}
 ''')
 
