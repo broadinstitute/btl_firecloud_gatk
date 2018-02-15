@@ -73,7 +73,7 @@ run('''\
 run('echo STARTING ApplyRecalibration-SNP')
 run('date')
 run('''\
-        java -Xmx8G -jar ${gatk} \
+        java -Xmx8G -jar ${gatk_path} \
             -T ApplyRecalibration \
             -R ref.fasta \
             -input ${genotype_caller_vcf} \
@@ -88,7 +88,7 @@ run('echo STARTING VariantRecalibrator-INDEL')
 run('date')
 #			${default="" "--intervals " + intervals} \
 run('''\
-        java -Xmx8G -jar ${gatk} \
+        java -Xmx8G -jar ${gatk_path} \
             -T VariantRecalibrator \
             -R ref.fasta \
             -input snp.recalibrated.filtered.vcf \
@@ -106,7 +106,7 @@ run('''\
 run('echo STARTING ApplyRecalibration-INDEL')
 run('date')
 run('''\
-        java -Xmx8G -jar ${gatk} \
+        java -Xmx8G -jar ${gatk_path} \
             -T ApplyRecalibration \
             -R ref.fasta \
             -input snp.recalibrated.filtered.vcf \

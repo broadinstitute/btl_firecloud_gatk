@@ -44,7 +44,7 @@ run('date')
 run('tar xvf ${reference_tgz}')
 
 # add back in when actually scattering haplotype caller
-#			${sep=" --intervals " "--intervals " + intervals} \
+#			$sep=" --intervals " "--intervals " + intervals \
 
 run('''\
         java -Xmx8G -jar ${gatk_path} \

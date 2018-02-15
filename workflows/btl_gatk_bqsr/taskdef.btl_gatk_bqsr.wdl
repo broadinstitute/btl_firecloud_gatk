@@ -8,7 +8,11 @@
     File in_bam = select_first([indelrealigner_bam, uncleaned_bam])
     File in_bam_index = select_first([indelrealigner_bam_index, uncleaned_bam_index])
 
-    call gatk_bqsr_task
+    call gatk_bqsr_task{
+        input:
+            in_bam = in_bam,
+            in_bam_index = in_bam_index
+    }
 
  }
 
@@ -16,8 +20,8 @@
 
 task gatk_bqsr_task {
     String gatk_path = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
-    #File in_bam
-    #File in_bam_index
+    File in_bam
+    File in_bam_index
     String sample_name
     File reference_tgz
     Array[String] known_sites

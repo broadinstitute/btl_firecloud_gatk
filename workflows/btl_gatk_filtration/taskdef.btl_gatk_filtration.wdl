@@ -12,7 +12,10 @@ workflow gatk_filtration {
     String filtration_type #combined or variant
 
     if (filtration_type == "combined") {
-        call gatk_combined_filtration_task
+        call gatk_combined_filtration_task {
+            input:
+                sv_vcf = sv_vcf
+        }
     }
     if (filtration_type == "variant") {
         call gatk_variant_filtration_task
@@ -27,6 +30,7 @@ task gatk_combined_filtration_task {
     String sample_name
     File reference_tgz
     String filter_expression
+    File sv_vcf
 
     String vcf_out_fn = "${sample_name}.ALL.filtered.vcf"
 
@@ -124,6 +128,7 @@ task gatk_variant_filtration_task {
     File reference_tgz
     String snp_filter_expression
     String indel_filter_expression
+    File sv_vcf
 
     String vcf_out_fn = "${sample_name}.variant.filtered.vcf"
 
@@ -158,8 +163,8 @@ run('date')
 run('''\
         java -Xmx8G -jar ${gatk_path} \
             -T SelectVariants \
-            -R ${ref} \
-            -V ${vcf_in} \
+            -R ref.fasta \
+            -V ${sv_vcf} \
             -selectType SNP \
             -o selectSNPs.vcf
 ''')
@@ -182,8 +187,8 @@ run('date')
 run('''\
         java -Xmx8G -jar ${gatk_path} \
             -T SelectVariants \
-            -R ${ref} \
-            -V ${vcf_in} \
+            -R ref.fasta \
+            -V ${sv_vcf} \
             -selectType INDEL \
             -o selectINDELs.vcf
 ''')

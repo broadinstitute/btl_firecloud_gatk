@@ -61,7 +61,7 @@ run('gzip -c --best ${ref_name}.tar > ${ref_name}.tgz')
     /opt/src/algutil/monitor_stop.py
 
     # exit statement must be the last line in the command block 
-    exit ${exit_code}
+    exit $exit_code
 
 
     }

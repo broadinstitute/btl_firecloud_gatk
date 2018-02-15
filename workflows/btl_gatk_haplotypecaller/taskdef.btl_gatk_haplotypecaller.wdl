@@ -10,7 +10,11 @@ workflow gatk_haplotypecaller {
     File in_bam = select_first([bqsr_bam, indelrealigner_bam, uncleaned_bam])
     File in_bam_index = select_first([bqsr_bam_index, indelrealigner_bam_index, uncleaned_bam_index])
 
-    call gatk_haplotypecaller_task
+    call gatk_haplotypecaller_task {
+        input:
+        in_bam = in_bam,
+        in_bam_index = in_bam_index
+    }
 
 }
 
@@ -18,8 +22,8 @@ workflow gatk_haplotypecaller {
 
 task gatk_haplotypecaller_task {
     String gatk_path = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
-    #File in_bam
-    #File in_bam_index
+    File in_bam
+    File in_bam_index
     String sample_name
 
     #Float interval_size
@@ -68,7 +72,7 @@ run('tar xvf ${reference_tgz}')
 #run('''\
 #python /opt/src/intervals_creator.py \
 #    -r ref.fasta \
-#    -i ${interval_size} \
+#    -i $interval_size \
 #    > intervals.list
 #''')
 #			--intervals intervals.list \
