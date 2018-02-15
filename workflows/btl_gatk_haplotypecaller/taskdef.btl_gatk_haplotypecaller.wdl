@@ -17,7 +17,7 @@ workflow gatk_haplotypecaller {
 
 
 task gatk_haplotypecaller_task {
-    String gatk = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
+    String gatk_path = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
     #File in_bam
     #File in_bam_index
     String sample_name
@@ -34,7 +34,7 @@ task gatk_haplotypecaller_task {
     Array[String] known_sites
 
 
-    String out_gvcf = "${sample_name}.gvcf"
+    String out_gvcf_fn = "${sample_name}.gvcf"
 
     String output_disk_gb 
     String boot_disk_gb = "10"
@@ -75,7 +75,7 @@ run('tar xvf ${reference_tgz}')
 #			--interval_padding 100 \
 
 run('''\
-        java -Xmx8G -jar ${gatk} \
+        java -Xmx8G -jar ${gatk_path} \
             -T HaplotypeCaller \
             -nt 1 \
             -R ref.fasta \
@@ -83,7 +83,7 @@ run('''\
             ${"-BQSR " + bqsr_file} \
             -ERC ${default="GVCF" erc} \
             -ploidy ${default="2" ploidy} \
-            -o ${out_gvcf} \
+            -o ${out_gvcf_fn} \
             -variant_index_type LINEAR \
             -variant_index_parameter 128000 \
             ${default="\n" extra_hc_params}
@@ -119,10 +119,7 @@ run('date')
 
     }
     output {
-        File out_bam = "${out_bam}"
-        File out_bam_index = "${out_bam_index}"
-        File recalibration_plots = "${recalibration_plots_fn}"
-        File intervals = "intervals.list"
+        File out_gvcf = "${out_gvcf_fn}"
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
         File dstat="dstat.log"

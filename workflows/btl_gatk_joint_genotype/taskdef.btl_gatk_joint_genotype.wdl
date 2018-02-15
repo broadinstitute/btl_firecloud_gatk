@@ -8,7 +8,7 @@ task gatk_joint_genotype_task {
     String ? extra_gg_params
     Array[File] HaplotypeCaller_gvcfs
     Boolean ? all_sites
-    String gatk = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
+    String gatk_path = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
 
     #File intervals
 
@@ -47,7 +47,7 @@ run('tar xvf ${reference_tgz}')
 #			${sep=" --intervals " "--intervals " + intervals} \
 
 run('''\
-        java -Xmx8G -jar ${gatk} \
+        java -Xmx8G -jar ${gatk_path} \
             -T GenotypeGVCFs \
             -R ref.fasta \
             -o ${vcf_out_fn} \

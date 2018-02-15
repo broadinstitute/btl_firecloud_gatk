@@ -5,7 +5,7 @@ workflow gatk_vqsr{
 
 
 task gatk_vqsr_task {
-    String gatk = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
+    String gatk_path = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
     File reference_tgz
     File ? intervals
 
@@ -23,6 +23,8 @@ task gatk_vqsr_task {
     Float ts_filter_indel
     String ? extra_vr_params
 
+    String cohort_name
+    String vcf_out_fn = "${cohort_name}.vqsr.vcf"
 
 
     String output_disk_gb 
@@ -53,7 +55,7 @@ run('echo STARTING VariantRecalibrator-SNP')
 run('date')
 #			${default="" "--intervals " + intervals} \
 run('''\
-        java -Xmx8G -jar ${gatk} \
+        java -Xmx8G -jar ${gatk_path} \
             -T VariantRecalibrator \
             -R ref.fasta \
             -input ${genotype_caller_vcf} \
@@ -112,7 +114,7 @@ run('''\
             -tranchesFile indel.tranches \
             -recalFile indel.recal \
             -mode "indel" \
-            -o snp_indel.recalibrated.filtered.vcf
+            -o ${vcf_out_fn}
 ''')
 
 run('echo DONE')
@@ -144,9 +146,8 @@ run('date')
 
     }
     output {
-        File out_bam = "${out_bam}"
-        File out_bam_index = "${out_bam_index}"
-        File recalibration_plots = "${recalibration_plots_fn}"
+        File vcf_out = "${vcf_out_fn}"
+
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
         File dstat="dstat.log"

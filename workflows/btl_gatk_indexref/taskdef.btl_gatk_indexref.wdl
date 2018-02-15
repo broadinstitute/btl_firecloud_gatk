@@ -19,7 +19,7 @@ task IndexReference {
     String preemptible = "0"
     String debug_dump_flag
 
-    String picard = "/cil/shed/apps/external/picard/current/bin/picard.jar"
+    String picard_path = "/cil/shed/apps/external/picard/current/bin/picard.jar"
 
     command {
         set -euo pipefail
@@ -37,7 +37,7 @@ def run(cmd):
 run('ln ${ref_fasta} ref.fasta')
 run('bwa index ref.fasta')
 run('samtools faidx ref.fasta')
-run('java -jar ${picard} CreateSequenceDictionary REFERENCE=ref.fasta O=ref.dict')
+run('java -jar ${picard_path} CreateSequenceDictionary REFERENCE=ref.fasta O=ref.dict')
 
 run('tar cvf ${ref_name}.tar ref.fasta ref.dict ref.fasta.amb ref.fasta.ann ref.fasta.bwt ref.fasta.fai ref.fasta.pac ref.fasta.sa')
 run('gzip -c --best ${ref_name}.tar > ${ref_name}.tgz')
