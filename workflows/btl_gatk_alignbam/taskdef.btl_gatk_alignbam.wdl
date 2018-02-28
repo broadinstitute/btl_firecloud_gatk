@@ -3,23 +3,23 @@ workflow gatk_alignbam {
 
     call gatk_alignbam_task 
 }
+
 # TODO break off the portion after BAM-to-fastq
 
 
 
 task gatk_alignbam_task {
-    String picard = "/cil/shed/apps/external/picard/current/bin/picard.jar"
+    String picard_path = "/cil/shed/apps/external/picard/current/bin/picard.jar"
     File in_bam
     String sample_name
-    String fq1 = "${sample_name}.1.fq"
-    String fq2 = "${sample_name}.2.fq"
-    String aligned_bam = "${sample_name}.aligned.bam"
-    String sorted_bam = "${sample_name}.sorted.bam"
-    String marked_bam = "${sample_name}.marked_duplicates.bam"
-    String marked_duplicates_metrics = "${sample_name}.marked_duplicates.metrics"
-    String out_bam_path = "${sample_name}.bam"
-    String out_index_path = "${out_bam_path}.bai"
-    String ref_fasta = "ref.fasta"
+    String fq1_fn = "${sample_name}.1.fq"
+    String fq2_fn = "${sample_name}.2.fq"
+    String aligned_bam_fn = "${sample_name}.aligned.bam"
+    String sorted_bam_fn = "${sample_name}.sorted.bam"
+    String marked_bam_fn = "${sample_name}.marked_duplicates.bam"
+    String marked_duplicates_metrics_fn = "${sample_name}.marked_duplicates.metrics"
+    String out_bam_fn = "${sample_name}.bam"
+    String out_bam_index_fn = "${out_bam_fn}.bai"
     File reference_tgz
 
     String read_group = "\\'@RG\\\\\\\\tID:FLOWCELL_${sample_name}\\\\\\\\tSM:${sample_name}\\\\\\\\tPL:ILLUMINA\\\\\\\\tLB:LIB_${sample_name}\\'"
@@ -49,27 +49,27 @@ run('tar xvf ${reference_tgz}')
 
 run('echo STARTING SamToFastq')
 run('date')
-run('java -Xmx12G -jar ${picard} SamToFastq INPUT=${in_bam} FASTQ=${fq1} SECOND_END_FASTQ=${fq2} VALIDATION_STRINGENCY=LENIENT')
+run('java -Xmx12G -jar ${picard_path} SamToFastq INPUT=${in_bam} FASTQ=${fq1_fn} SECOND_END_FASTQ=${fq2_fn} VALIDATION_STRINGENCY=LENIENT')
 
 run('echo STARTING bwa mem')
 run('date')
-run('bwa mem -t 8 -R ${read_group} ${ref_fasta} ${fq1} ${fq2} | samtools view -bS - > ${aligned_bam}')
+run('bwa mem -t 8 -R ${read_group} ref.fasta ${fq1_fn} ${fq2_fn} | samtools view -bS - > ${aligned_bam_fn}')
 
 run('echo STARTING SortSam')
 run('date')
-run('java -Xmx8G -jar ${picard} SortSam I=${aligned_bam} O=${sorted_bam} SO=coordinate')
+run('java -Xmx8G -jar ${picard_path} SortSam I=${aligned_bam_fn} O=${sorted_bam_fn} SO=coordinate')
 
 run('echo STARTING MarkDuplicates')
 run('date')
-run('java -Xmx8G -jar ${picard} MarkDuplicates I=${sorted_bam} O=${marked_bam} M=${marked_duplicates_metrics}')
+run('java -Xmx8G -jar ${picard_path} MarkDuplicates I=${sorted_bam_fn} O=${marked_bam_fn} M=${marked_duplicates_metrics_fn}')
 
 run('echo STARTING ReorderSam')
 run('date')
-run('java -Xmx8G -jar ${picard} ReorderSam I=${marked_bam} O=${out_bam_path} R=${ref_fasta}')
+run('java -Xmx8G -jar ${picard_path} ReorderSam I=${marked_bam_fn} O=${out_bam_fn} R=ref.fasta')
 
 run('echo STARTING index')
 run('date')
-run('samtools index ${out_bam_path}')
+run('samtools index ${out_bam_fn}')
 
 "
 
@@ -98,8 +98,8 @@ run('samtools index ${out_bam_path}')
 
     }
     output {
-        File out_bam = "${out_bam_path}"
-        File out_index = "${out_index_path}"
+        File out_bam = "${out_bam_fn}"
+        File out_bam_index = "${out_bam_index_fn}"
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
         File dstat="dstat.log"

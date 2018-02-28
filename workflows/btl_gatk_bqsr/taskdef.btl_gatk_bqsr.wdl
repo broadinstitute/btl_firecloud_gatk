@@ -8,23 +8,27 @@
     File in_bam = select_first([indelrealigner_bam, uncleaned_bam])
     File in_bam_index = select_first([indelrealigner_bam_index, uncleaned_bam_index])
 
-    call gatk_bqsr_task
+    call gatk_bqsr_task{
+        input:
+            in_bam = in_bam,
+            in_bam_index = in_bam_index
+    }
 
  }
 
 # TODO - Why is bqsr run twice? It is expensive. Do the plots indicate it matters?
 
 task gatk_bqsr_task {
-    String gatk = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
-    #File in_bam
-    #File in_bam_index
+    String gatk_path = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
+    File in_bam
+    File in_bam_index
     String sample_name
     File reference_tgz
     Array[String] known_sites
 
-    String recalibration_plots_fn = ${sample_name}.recalibration_plots.pdf
-    String out_bam =  "${sample_name}.bqsr.bam"
-    String out_bam_index =  "${out_bam}.bai"
+    String recalibration_plots_fn = "${sample_name}.recalibration_plots.pdf"
+    String out_bam_fn =  "${sample_name}.bqsr.bam"
+    String out_bam_index_fn =  "${out_bam_fn}.bai"
 
     String output_disk_gb 
     String boot_disk_gb = "10"
@@ -55,23 +59,23 @@ run('tar xvf ${reference_tgz}')
 
 run('echo STARTING BaseRecalibrator pass 1')
 run('date')
-run('java -Xmx4G  -jar ${gatk} -T BaseRecalibrator -nct 8 -nt 1 -R ref.fasta -I in.bam -knownSites ${sep=" -knownSites " known_sites} -o recal_data.table ')
+run('java -Xmx4G  -jar ${gatk_path} -T BaseRecalibrator -nct 8 -nt 1 -R ref.fasta -I in.bam -knownSites ${sep=" -knownSites " known_sites} -o recal_data.table ')
 
 run('echo STARTING BaseRecalibrator pass 2')
 run('date')
-run('java -Xmx4G  -jar ${gatk} -T BaseRecalibrator -nct 8 -nt 1 -R ref.fasta -I in.bam -knownSites ${sep=" -knownSites " known_sites} -o post_recal_data.table -BQSR recal_data.table')
+run('java -Xmx4G  -jar ${gatk_path} -T BaseRecalibrator -nct 8 -nt 1 -R ref.fasta -I in.bam -knownSites ${sep=" -knownSites " known_sites} -o post_recal_data.table -BQSR recal_data.table')
 
 run('echo STARTING AnalyzeCovariates')
 run('date')
-run('java -Xmx8G -jar ${gatk} -T AnalyzeCovariates -R ref.fasta -before recal_data.table -after post_recal_data.table -plots ${recalibration_plots_fn}')
+run('java -Xmx8G -jar ${gatk_path} -T AnalyzeCovariates -R ref.fasta -before recal_data.table -after post_recal_data.table -plots ${recalibration_plots_fn}')
 
 run('echo STARTING PrintReads')
 run('date')
-run('java -Xmx4G -jar ${gatk} -T PrintReads -nct 8 -nt 1 -R ref.fasta -I in.bam -BQSR post_recal_data.table -o ${out_bam}')
+run('java -Xmx4G -jar ${gatk_path} -T PrintReads -nct 8 -nt 1 -R ref.fasta -I in.bam -BQSR post_recal_data.table -o ${out_bam_fn}')
 
 run('echo STARTING index')
 run('date')
-run('samtools index ${out_bam}')
+run('samtools index ${out_bam_fn}')
 
 run('echo DONE')
 run('date')
@@ -102,7 +106,7 @@ run('date')
 
     }
     output {
-        File out_bam = "${out_bam}"
+        File out_bam = "${out_bam_fn}"
         File out_bam_index = "${out_bam_index}"
         File recalibration_plots = "${recalibration_plots_fn}"
         File monitor_start="monitor_start.log"

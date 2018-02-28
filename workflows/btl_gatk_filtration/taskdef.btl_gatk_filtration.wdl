@@ -12,7 +12,10 @@ workflow gatk_filtration {
     String filtration_type #combined or variant
 
     if (filtration_type == "combined") {
-        call gatk_combined_filtration_task
+        call gatk_combined_filtration_task {
+            input:
+                sv_vcf = sv_vcf
+        }
     }
     if (filtration_type == "variant") {
         call gatk_variant_filtration_task
@@ -23,12 +26,13 @@ workflow gatk_filtration {
 
 
 task gatk_combined_filtration_task {
-    String gatk = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
+    String gatk_path = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
     String sample_name
     File reference_tgz
     String filter_expression
+    File sv_vcf
 
-    String vcf_out = "${sample_name}.ALL.filtered.vcf"
+    String vcf_out_fn = "${sample_name}.ALL.filtered.vcf"
 
     String output_disk_gb 
     String boot_disk_gb = "10"
@@ -58,13 +62,13 @@ run('tar xvf ${reference_tgz}')
 run('echo STARTING VariantFiltration')
 run('date')
 run('''\
-        java -Xmx8G -jar ${gatk} \
+        java -Xmx8G -jar ${gatk_path} \
             -T VariantFiltration \
             -R ref.fasta \
             -V ${sv_vcf} \
             --filterExpression '${filter_expression}' \
             --filterName my_variant_filter \
-            -o ${vcf_out}
+            -o ${vcf_out_fn}
 ''')
 
 
@@ -97,11 +101,13 @@ run('date')
 
     }
     output {
-        File vcf_out = "${vcf_out}"
+        File vcf_out = "${vcf_out_fn}"
+        String filtration_type_out = "${filtration_type}"
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
         File dstat="dstat.log"
         File debug_bundle="debug_bundle.tar.gz"
+
     } runtime {
         docker : "gcr.io/btl-dockers/btl_gatk:1"
         memory: "${ram_gb}GB"
@@ -117,13 +123,14 @@ run('date')
 }
 
 task gatk_variant_filtration_task {
-    String gatk = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
+    String gatk_path = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
     String sample_name
     File reference_tgz
     String snp_filter_expression
     String indel_filter_expression
+    File sv_vcf
 
-    String vcf_out = "${sample_name}.variant.filtered.vcf"
+    String vcf_out_fn = "${sample_name}.variant.filtered.vcf"
 
 
     String output_disk_gb 
@@ -154,22 +161,22 @@ run('tar xvf ${reference_tgz}')
 run('echo STARTING SelectVariants-SNP')
 run('date')
 run('''\
-        java -Xmx8G -jar ${gatk} \
+        java -Xmx8G -jar ${gatk_path} \
             -T SelectVariants \
-            -R ${ref} \
-            -V ${vcf_in} \
+            -R ref.fasta \
+            -V ${sv_vcf} \
             -selectType SNP \
-            -o selectSNP.vcf
+            -o selectSNPs.vcf
 ''')
 
 
 run('echo STARTING VariantFiltration-SNP')
 run('date')
 run('''\
-        java -Xmx8G -jar ${gatk} \
+        java -Xmx8G -jar ${gatk_path} \
             -T VariantFiltration \
             -R ref.fasta \
-            -V selectSNP.vcf \
+            -V selectSNPs.vcf \
             --filterExpression '${snp_filter_expression}' \
             --filterName my_variant_filter \
             -o filtered_SNPs.vcf
@@ -178,22 +185,22 @@ run('''\
 run('echo STARTING SelectVariants-INDEL')
 run('date')
 run('''\
-        java -Xmx8G -jar ${gatk} \
+        java -Xmx8G -jar ${gatk_path} \
             -T SelectVariants \
-            -R ${ref} \
-            -V ${vcf_in} \
+            -R ref.fasta \
+            -V ${sv_vcf} \
             -selectType INDEL \
-            -o selectINDEL.vcf
+            -o selectINDELs.vcf
 ''')
 
 
 run('echo STARTING VariantFiltration-INDEL')
 run('date')
 run('''\
-        java -Xmx8G -jar ${gatk} \
+        java -Xmx8G -jar ${gatk_path} \
             -T VariantFiltration \
             -R ref.fasta \
-            -V selectINDEL.vcf \
+            -V selectINDELs.vcf \
             --filterExpression '${indel_filter_expression}' \
             --filterName my_variant_filter \
             -o filtered_INDELs.vcf
@@ -203,12 +210,12 @@ run('''\
 run('echo STARTING VariantFiltration-INDEL')
 run('date')
 run('''\
-        java -jar -Xmx8G ${gatk} \
+        java -jar -Xmx8G ${gatk_path} \
             -T CombineVariants \
             -R ref.fasta \
             --variant filtered_SNPs.vcf \
             --variant filtered_INDELs.vcf \
-            -o ${vcf_out} \
+            -o ${vcf_out_fn} \
             -genotypeMergeOptions UNIQUIFY
 ''')
 
@@ -243,7 +250,7 @@ run('date')
 
     }
     output {
-        File vcf_out = "${vcf_out}"
+        File vcf_out = "${vcf_out_fn}"
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
         File dstat="dstat.log"

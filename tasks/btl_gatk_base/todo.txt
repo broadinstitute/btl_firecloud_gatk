@@ -49,6 +49,7 @@ FDT issue - set permissions in pushwdl
 
 --------------------------
 --------------------------
+
 * Xpull create intervals list out into a one-per-cohort block? or 
 * interval list replicate in blocks needing it, pass in interval size
 * current implementation starts with bam; should it allow fastq start?
@@ -59,9 +60,17 @@ FDT issue - set permissions in pushwdl
 * perhaps seprate modules depending on aligned bam, unaligned bam, or fastq, each one dumping to the same attribute
 * update the timestamp section to dump block elapsed and total elapsed seconds
 
+* pull create intervals list out into a one-per-cohort block
+* perhaps drop symlink from home and /tmp directories to point to output dir
+
+
 -------
 -------
 * Get everything running in one docker first. Consider splitting into multiple dockers later (somewhat due to loadtime, more due to decoupled versioning)
 * Inline serial workflows into one WDL task, for less overall code and fewer moving parts.  This does not degrade parallelization.  Split things apart when they are usable as independent units, or when there is independent versioning.
 * Adding code to drop symlinks to input and execution directories, for ease when logging into running docker
 * adding python block plus tarball on fail code - python easier when doing more complicated things, and is a block that can be used to determine exit code and subsequent tarfile dumping.
+* convert tabs to spaces
+* pulled out interval list creator, pending actually needing it for scattering.  its output was being passed around inconsistently, so it seemed in need of debug or verification
+* check wiring of select statements
+* varnaming consistency - _fn for string filename, vs nothing for a file

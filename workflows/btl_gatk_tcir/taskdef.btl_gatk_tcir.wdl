@@ -7,14 +7,14 @@ workflow gatk_tcir {
 
 
 task gatk_tcir_task {
-    String gatk = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
+    String gatk_path = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
     File in_bam
     File in_bam_index
     String sample_name
     File reference_tgz
 
-    String out_bam =  "${sample_name}.tcir.bam"
-    String out_bam_index =  "${out_bam}.bai"
+    String out_bam_fn =  "${sample_name}.tcir.bam"
+    String out_bam_index_fn =  "${out_bam}.bai"
 
     String output_disk_gb 
     String boot_disk_gb = "10"
@@ -45,17 +45,19 @@ run('tar xvf ${reference_tgz}')
 
 run('echo STARTING RealignerTargetCreator')
 run('date')
-run('java -Xmx8G -jar ${gatk} -T RealignerTargetCreator -nct 1 -nt 24 -R ref.fasta -I in.bam -o tcir.intervals.list ')
+
+run('java -Xmx8G -jar ${gatk_path} -T RealignerTargetCreator -nct 1 -nt 24 -R ref.fasta -I in.bam -o tcir.intervals.list ')
 
 
 run('echo STARTING IndelRealigner')
 run('date')
-run('java -Xmx4G -jar ${gatk} -T IndelRealigner -nct 1 -nt 1 -R ref.fasta -I in.bam -targetIntervals tcir.intervals.list -o ${out_bam}')
+run('java -Xmx4G -jar ${gatk_path} -T IndelRealigner -nct 1 -nt 1 -R ref.fasta -I in.bam -targetIntervals tcir.intervals.list -o ${out_bam_fn}')
+
 
 
 run('echo STARTING index')
 run('date')
-run('samtools index ${out_bam}')
+run('samtools index ${out_bam_fn}')
 
 run('echo DONE')
 run('date')
@@ -86,8 +88,8 @@ run('date')
 
     }
     output {
-        File out_bam = "${out_bam}"
-        File out_bam_index = "${out_bam_index}"
+        File out_bam = "${out_bam_fn}"
+        File out_bam_index = "${out_bam_index_fn}"
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
         File dstat="dstat.log"

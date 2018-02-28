@@ -5,11 +5,12 @@ workflow gatk_vqsr{
 
 
 task gatk_vqsr_task {
-    String gatk = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
+    String gatk_path = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
     File reference_tgz
     File ? intervals
 
     File genotype_caller_vcf
+    #TODO make sure these array args are working
     Array[String] snp_resource
     Array[String] indel_resource
     Array[String] snp_annotation
@@ -22,6 +23,8 @@ task gatk_vqsr_task {
     Float ts_filter_indel
     String ? extra_vr_params
 
+    String cohort_name
+    String vcf_out_fn = "${cohort_name}.vqsr.vcf"
 
 
     String output_disk_gb 
@@ -50,27 +53,27 @@ run('tar xvf ${reference_tgz}')
 
 run('echo STARTING VariantRecalibrator-SNP')
 run('date')
+#			${default="" "--intervals " + intervals} \
 run('''\
-		java -Xmx8G -jar ${gatk} \
-			-T VariantRecalibrator \
-			-R ref.fasta \
-			${default="" "--intervals " + intervals} \
-			-input ${genotype_caller_vcf} \
-			-mode "snp" \
+        java -Xmx8G -jar ${gatk_path} \
+            -T VariantRecalibrator \
+            -R ref.fasta \
+            -input ${genotype_caller_vcf} \
+            -mode snp \
+            -recalFile snp.recal \
+            -tranchesFile snp.tranches \
+            -rscriptFile snp.plots.R \
             -resource:${sep=" -resource:" snp_resource} \
-			-recalFile snp.recal \
-			-tranchesFile snp.tranches \
-			-rscriptFile snp.plots.R \
-			-an ${sep=" -an " snp_annotation} \
-			--maxGaussians ${snp_max_gaussians} \
-			--MQCapForLogitJitterTransform ${mq_cap_snp}
-			${default="\n" extra_vr_params}
+            -an ${sep=" -an " snp_annotation} \
+            --maxGaussians ${snp_max_gaussians} \
+            --MQCapForLogitJitterTransform ${mq_cap_snp}
+            ${default="\n" extra_vr_params}
 ''')
 
 run('echo STARTING ApplyRecalibration-SNP')
 run('date')
 run('''\
-		java -Xmx8G -jar ${gatk} \
+        java -Xmx8G -jar ${gatk_path} \
             -T ApplyRecalibration \
             -R ref.fasta \
             -input ${genotype_caller_vcf} \
@@ -83,27 +86,27 @@ run('''\
 
 run('echo STARTING VariantRecalibrator-INDEL')
 run('date')
+#			${default="" "--intervals " + intervals} \
 run('''\
-		java -Xmx8G -jar ${gatk} \
-			-T VariantRecalibrator \
-			-R ref.fasta \
-			${default="" "--intervals " + intervals} \
-			-input snp.recalibrated.filtered.vcf \
-			-mode "indel" \
+        java -Xmx8G -jar ${gatk_path} \
+            -T VariantRecalibrator \
+            -R ref.fasta \
+            -input snp.recalibrated.filtered.vcf \
+            -mode "indel" \
+            -recalFile indel.recal \
+            -tranchesFile indel.tranches \
+            -rscriptFile indel.plots.R \
             -resource:${sep=" -resource:" indel_resource} \
-			-recalFile indel.recal \
-			-tranchesFile indel.tranches \
-			-rscriptFile indel.plots.R \
-			-an ${sep=" -an " indel_annotation} \
-			--maxGaussians ${indel_max_gaussians} \
-			--MQCapForLogitJitterTransform ${mq_cap_indel}
-			${default="\n" extra_vr_params}
+            -an ${sep=" -an " indel_annotation} \
+            --maxGaussians ${indel_max_gaussians} \
+            --MQCapForLogitJitterTransform ${mq_cap_indel}
+            ${default="\n" extra_vr_params}
 ''')
 
 run('echo STARTING ApplyRecalibration-INDEL')
 run('date')
 run('''\
-		java -Xmx8G -jar ${gatk} \
+        java -Xmx8G -jar ${gatk_path} \
             -T ApplyRecalibration \
             -R ref.fasta \
             -input snp.recalibrated.filtered.vcf \
@@ -111,7 +114,7 @@ run('''\
             -tranchesFile indel.tranches \
             -recalFile indel.recal \
             -mode "indel" \
-            -o snp_indel.recalibrated.filtered.vcf
+            -o ${vcf_out_fn}
 ''')
 
 run('echo DONE')
@@ -143,9 +146,8 @@ run('date')
 
     }
     output {
-        File out_bam = "${out_bam}"
-        File out_bam_index = "${out_bam_index}"
-        File recalibration_plots = "${recalibration_plots_fn}"
+        File vcf_out = "${vcf_out_fn}"
+
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
         File dstat="dstat.log"
