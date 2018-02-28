@@ -69,6 +69,7 @@ python /opt/src/intervals_creator.py -r ref.fasta \
         -i ${interval_size} > intervals.list
 ''')
 
+# NOTE: HaplotypeCaller complains if I don't provide --variant_index_type and variant_index_parameter
 run('''\
         java -Xmx8G -jar ${gatk} \
 			-T HaplotypeCaller \

@@ -3,6 +3,7 @@ workflow gatk_alignbam {
 
     call gatk_alignbam_task 
 }
+# TODO break off the portion after BAM-to-fastq
 
 
 

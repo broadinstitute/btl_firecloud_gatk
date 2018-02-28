@@ -45,12 +45,12 @@ run('tar xvf ${reference_tgz}')
 
 run('echo STARTING RealignerTargetCreator')
 run('date')
-run('java -Xmx8G -jar ${gatk} -T RealignerTargetCreator -nct 1 -nt 24 -R ref.fasta -I in.bam -o intervals.list ')
+run('java -Xmx8G -jar ${gatk} -T RealignerTargetCreator -nct 1 -nt 24 -R ref.fasta -I in.bam -o tcir.intervals.list ')
 
 
 run('echo STARTING IndelRealigner')
 run('date')
-run('java -Xmx4G -jar ${gatk} -T IndelRealigner -nct 1 -nt 1 -R ref.fasta -I in.bam -targetIntervals intervals.list -o ${out_bam}')
+run('java -Xmx4G -jar ${gatk} -T IndelRealigner -nct 1 -nt 1 -R ref.fasta -I in.bam -targetIntervals tcir.intervals.list -o ${out_bam}')
 
 
 run('echo STARTING index')
