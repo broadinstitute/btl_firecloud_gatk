@@ -1,5 +1,6 @@
 {
-    "btl_gatk_indexref_workflow.btl_gatk_indexref.salutation_input_string": "hello",
-    "btl_gatk_indexref_workflow.btl_gatk_indexref.name_input_file": "https://personal.broadinstitute.org/gsaksena/world.txt",
-    "btl_gatk_indexref_workflow.btl_gatk_indexref.output_disk_gb": "10"
+  "gatk_indexref.IndexReference.ref_name": "minion_illumina_hybrid_clean_MT",
+  "gatk_indexref.IndexReference.output_disk_gb": "10",
+  "gatk_indexref.IndexReference.ref_fasta": "gs://broad-cil-devel-bucket/input_data/minion_illumina_hybrid_clean_MT.fasta",
+  "gatk_indexref.IndexReference.debug_dump_flag": "onfail"
 }
