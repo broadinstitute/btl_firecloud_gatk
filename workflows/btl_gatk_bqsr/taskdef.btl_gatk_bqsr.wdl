@@ -24,11 +24,13 @@ task gatk_bqsr_task {
     File in_bam_index
     String sample_name
     File reference_tgz
-    Array[String] known_sites
+    Array[File] known_sites_vcfs
+    Array[File] known_sites_vcf_tbis
 
     String recalibration_plots_fn = "${sample_name}.recalibration_plots.pdf"
     String out_bam_fn =  "${sample_name}.bqsr.bam"
     String out_bam_index_fn =  "${out_bam_fn}.bai"
+    String out_bqsr_table_fn = "${sample_name}.bqsr.table"
 
     String output_disk_gb 
     String boot_disk_gb = "10"
@@ -45,6 +47,7 @@ task gatk_bqsr_task {
         /opt/src/algutil/monitor_start.py
         python_cmd="
 import subprocess
+import os
 def run(cmd):
     print (cmd)
     subprocess.check_call(cmd,shell=True)
@@ -53,17 +56,29 @@ def run(cmd):
 run('ln -s ${in_bam} in.bam')
 run('ln -s ${in_bam_index} in.bam.bai')
 
+# Drop symlink to index next to each vcf file. Leave VCFs in original directories to avoid name clashes.
+# Assume that vcf and tbi list are ordered the same; downstream crash will result if not.
+for known_sites_vcf, known_sites_vcf_tbi in zip(['${sep="', '"   known_sites_vcfs }'], ['${sep="', '"   known_sites_vcf_tbis}']    ):
+
+    vcf_dir = os.path.dirname(known_sites_vcf)
+    tbi_fn = os.path.basename(known_sites_vcf_tbi)
+    tbi_symlink = os.path.join(vcf_dir,tbi_fn)
+    if tbi_symlink == known_sites_vcf_tbi:
+        continue
+    print('about to: ln %s %s'%(tbi_symlink, known_sites_vcf_tbi))
+    os.link(tbi_symlink, known_sites_vcf_tbi)
+
 run('echo STARTING tar xvf to unpack reference')
 run('date')
 run('tar xvf ${reference_tgz}')
 
 run('echo STARTING BaseRecalibrator pass 1')
 run('date')
-run('java -Xmx4G  -jar ${gatk_path} -T BaseRecalibrator -nct 8 -nt 1 -R ref.fasta -I in.bam -knownSites ${sep=" -knownSites " known_sites} -o recal_data.table ')
+run('java -Xmx4G  -jar ${gatk_path} -T BaseRecalibrator -nct 8 -nt 1 -R ref.fasta -I in.bam -knownSites ${sep=" -knownSites " known_sites_vcfs} -o recal_data.table ')
 
 run('echo STARTING BaseRecalibrator pass 2')
 run('date')
-run('java -Xmx4G  -jar ${gatk_path} -T BaseRecalibrator -nct 8 -nt 1 -R ref.fasta -I in.bam -knownSites ${sep=" -knownSites " known_sites} -o post_recal_data.table -BQSR recal_data.table')
+run('java -Xmx4G  -jar ${gatk_path} -T BaseRecalibrator -nct 8 -nt 1 -R ref.fasta -I in.bam -knownSites ${sep=" -knownSites " known_sites_vcfs} -o post_recal_data.table -BQSR recal_data.table')
 
 run('echo STARTING AnalyzeCovariates')
 run('date')
@@ -76,6 +91,8 @@ run('java -Xmx4G -jar ${gatk_path} -T PrintReads -nct 8 -nt 1 -R ref.fasta -I in
 run('echo STARTING index')
 run('date')
 run('samtools index ${out_bam_fn}')
+
+run('ln post_recal_data.table ${out_bqsr_table_fn}')
 
 run('echo DONE')
 run('date')
@@ -107,7 +124,8 @@ run('date')
     }
     output {
         File out_bam = "${out_bam_fn}"
-        File out_bam_index = "${out_bam_index}"
+        File out_bam_index = "${out_bam_index_fn}"
+        File out_bqsr_table = "{out_bqsr_table_fn}"
         File recalibration_plots = "${recalibration_plots_fn}"
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
