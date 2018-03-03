@@ -14,7 +14,7 @@ task gatk_tcir_task {
     File reference_tgz
 
     String out_bam_fn =  "${sample_name}.tcir.bam"
-    String out_bam_index_fn =  "${out_bam}.bai"
+    String out_bam_index_fn =  "${out_bam_fn}.bai"
 
     String output_disk_gb 
     String boot_disk_gb = "10"
