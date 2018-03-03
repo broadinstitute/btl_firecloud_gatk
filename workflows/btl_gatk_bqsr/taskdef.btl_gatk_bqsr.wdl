@@ -52,6 +52,13 @@ def run(cmd):
     print (cmd)
     subprocess.check_call(cmd,shell=True)
 
+#count number of CPU's
+fid = open('/proc/cpuinfo')
+cpu_count = 0
+for line in fid:
+    if 'processor' in line:
+        cpu_count = cpu_count + 1
+fid.close()
 
 run('ln -s ${in_bam} in.bam')
 run('ln -s ${in_bam_index} in.bam.bai')
@@ -74,19 +81,22 @@ run('tar xvf ${reference_tgz}')
 
 run('echo STARTING BaseRecalibrator pass 1')
 run('date')
-run('java -Xmx4G  -jar ${gatk_path} -T BaseRecalibrator -nct 8 -nt 1 -R ref.fasta -I in.bam -knownSites ${sep=" -knownSites " known_sites_vcfs} -o recal_data.table ')
+run('java -Xmx4G  -jar ${gatk_path} -T BaseRecalibrator -nct %d -nt 1 -R ref.fasta -I in.bam -knownSites ${sep=" -knownSites " known_sites_vcfs} -o recal_data.table '%cpu_count)
 
 run('echo STARTING BaseRecalibrator pass 2')
 run('date')
-run('java -Xmx4G  -jar ${gatk_path} -T BaseRecalibrator -nct 8 -nt 1 -R ref.fasta -I in.bam -knownSites ${sep=" -knownSites " known_sites_vcfs} -o post_recal_data.table -BQSR recal_data.table')
+run('java -Xmx4G  -jar ${gatk_path} -T BaseRecalibrator -nct %d -nt 1 -R ref.fasta -I in.bam -knownSites ${sep=" -knownSites " known_sites_vcfs} -o post_recal_data.table -BQSR recal_data.table'%cpu_count)
 
 run('echo STARTING AnalyzeCovariates')
 run('date')
-run('java -Xmx8G -jar ${gatk_path} -T AnalyzeCovariates -R ref.fasta -before recal_data.table -after post_recal_data.table -plots ${recalibration_plots_fn}')
+# plots require R-3.1 to work
+#run('java -Xmx8G -jar ${gatk_path} -T AnalyzeCovariates -R ref.fasta -before recal_data.table -after post_recal_data.table -plots ${recalibration_plots_fn}')
+run('java -Xmx8G -jar ${gatk_path} -T AnalyzeCovariates -R ref.fasta -before recal_data.table -after post_recal_data.table -csv table.csv')
+run('touch ${recalibration_plots_fn}')
 
 run('echo STARTING PrintReads')
 run('date')
-run('java -Xmx4G -jar ${gatk_path} -T PrintReads -nct 8 -nt 1 -R ref.fasta -I in.bam -BQSR post_recal_data.table -o ${out_bam_fn}')
+run('java -Xmx4G -jar ${gatk_path} -T PrintReads -nct %d -nt 1 -R ref.fasta -I in.bam -BQSR post_recal_data.table -o ${out_bam_fn}'%cpu_count)
 
 run('echo STARTING index')
 run('date')
@@ -125,7 +135,7 @@ run('date')
     output {
         File out_bam = "${out_bam_fn}"
         File out_bam_index = "${out_bam_index_fn}"
-        File out_bqsr_table = "{out_bqsr_table_fn}"
+        File out_bqsr_table = "${out_bqsr_table_fn}"
         File recalibration_plots = "${recalibration_plots_fn}"
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
