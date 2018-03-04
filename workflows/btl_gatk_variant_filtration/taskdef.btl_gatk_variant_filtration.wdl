@@ -3,15 +3,9 @@ workflow gatk_variant_filtration {
 
 
 
-    File ? vqsr_vcf
-    File ? genotype_caller_vcf
 
-    File sv_vcf = select_first([vqsr_vcf, genotype_caller_vcf])
 
-    call gatk_variant_filtration_task {
-        input:
-            sv_vcf = sv_vcf
-    }
+    call gatk_variant_filtration_task 
 }
 
 

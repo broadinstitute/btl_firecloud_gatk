@@ -1,18 +1,8 @@
  workflow gatk_bqsr {
  
-    File ? indelrealigner_bam
-    File ? uncleaned_bam
-    File ? indelrealigner_bam_index
-    File ? uncleaned_bam_index
-    
-    File in_bam = select_first([indelrealigner_bam, uncleaned_bam])
-    File in_bam_index = select_first([indelrealigner_bam_index, uncleaned_bam_index])
 
-    call gatk_bqsr_task{
-        input:
-            in_bam = in_bam,
-            in_bam_index = in_bam_index
-    }
+
+    call gatk_bqsr_task
 
  }
 

@@ -1,20 +1,6 @@
 workflow gatk_haplotypecaller {
 
-    File ? bqsr_bam
-    File ? indelrealigner_bam
-    File ? uncleaned_bam
-    File ? bqsr_bam_index
-    File ? indelrealigner_bam_index
-    File ? uncleaned_bam_index
-
-    File in_bam = select_first([bqsr_bam, indelrealigner_bam, uncleaned_bam])
-    File in_bam_index = select_first([bqsr_bam_index, indelrealigner_bam_index, uncleaned_bam_index])
-
-    call gatk_haplotypecaller_task {
-        input:
-        in_bam = in_bam,
-        in_bam_index = in_bam_index
-    }
+    call gatk_haplotypecaller_task 
 
 }
 
