@@ -26,7 +26,6 @@ task gatk_haplotypecaller_task {
     File in_bam_index
     String sample_name
 
-    #Float interval_size
     File ? bqsr_file
     String ? ploidy
     String ? erc
@@ -35,7 +34,7 @@ task gatk_haplotypecaller_task {
 
 
     File reference_tgz
-    Array[String] known_sites
+
 
 
     String out_gvcf_fn = "${sample_name}.gvcf"
@@ -72,7 +71,7 @@ run('tar xvf ${reference_tgz}')
 #run('''\
 #python /opt/src/intervals_creator.py \
 #    -r ref.fasta \
-#    -i $interval_size \
+#    -i $   padding  interval_size \
 #    > intervals.list
 #''')
 #			--intervals intervals.list \
