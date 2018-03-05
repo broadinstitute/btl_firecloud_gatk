@@ -12,7 +12,7 @@ task gatk_haplotypecaller_task {
     File in_bam_index
     String sample_name
 
-    File ? bqsr_file
+    File ? bqsr_table
     String ? ploidy
     String ? erc
     String ? extra_hc_params
@@ -70,7 +70,7 @@ run('''\
             -nt 1 \
             -R ref.fasta \
             --input_file ${in_bam} \
-            ${"-BQSR " + bqsr_file} \
+            ${"-BQSR " + bqsr_table} \
             -ERC ${default="GVCF" erc} \
             -ploidy ${default="2" ploidy} \
             -o ${out_gvcf_fn} \
