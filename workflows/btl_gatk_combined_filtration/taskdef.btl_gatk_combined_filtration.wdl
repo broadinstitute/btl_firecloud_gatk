@@ -1,4 +1,4 @@
-workflow gatk_filtration {
+workflow gatk_combined_filtration {
 # http://gatkforums.broadinstitute.org/gatk/discussion/2806/howto-apply-hard-filters-to-a-call-set
 
         call gatk_combined_filtration_task 
