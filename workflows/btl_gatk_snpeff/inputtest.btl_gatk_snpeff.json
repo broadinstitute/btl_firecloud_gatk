@@ -1,5 +1,5 @@
 {
-    "btl_gatk_snpeff_workflow.btl_gatk_snpeff.salutation_input_string": "hello",
+    "btl_gatk_snpeff_workflow.btl_gatk_snpeff.vqsr_vcf_tb": "Z:\\filtered.combined.vcf",
     "btl_gatk_snpeff_workflow.btl_gatk_snpeff.name_input_file": "https://personal.broadinstitute.org/gsaksena/world.txt",
     "btl_gatk_snpeff_workflow.btl_gatk_snpeff.output_disk_gb": "10"
 }

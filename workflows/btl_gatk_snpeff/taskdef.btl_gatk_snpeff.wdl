@@ -1,49 +1,82 @@
 
 workflow gatk_snpeff {
-    File ? vqsr_vcf
-    File ? genotype_vcf
-    File ? filtration_vcf
-    File snpeff_vcf = select_first([filtration_vcf, vqsr_vcf, genotype_vcf])
-    String snpeff = "/cil/shed/apps/external/snpEff/snpEff-4.1g/snpEff.jar"
-    String snpeff_db
-    String ? snpeff_extra_params
-
-    call SnpEff {
-        input:
-        vcf_in = snpeff_vcf,
-        snpeff_db = snpeff_db,
-        snpeff = snpeff,
-        snpeff_extra_params = snpeff_extra_params
-    }
+    call SnpEff
 }
 
 #TODO: How to handle the database issue: 1) Upload database to bucket location. 2) Pass location to WDL as a param
+#TODO: Reconsider if we really need to pack/unpack the vcf file
+#TODO: Reconsider if we really need to pass in 3 optional vcf parameters or we can just use one.
+#TODO: Need to conditionally unpack tarball for database. Hard to do with CL python since it doesn't take expressions.
+#TODO: Need to conditionally apply -dataDir flag. Hard to do with CL python since it doesn't take expressions.
+#TODO: Would it make sense to upload the custom database to the compute VM itself and define in the config file there
+# a local db store?
 
 # Based on http://gatkforums.broadinstitute.org/gatk/discussion/50/adding-genomic-annotations-using-snpeff-and-variantannotator
 task SnpEff {
+#    File ? vqsr_vcf_tb
+#    File ? genotype_vcf_tb
+#    File ? filtration_vcf_tb
+#    File vcf_in_tb = select_first([filtration_vcf_tb, vqsr_vcf_tb, genotype_vcf_tb])
     File vcf_in
-    String vcf_out = "SnpEff.annotated.vcf"
-    String snpeff
-    String snpeff_db
+    String snpeff = "/cil/shed/apps/external/snpEff/snpEff-4.1g/snpEff.jar"
+    String ? snpeff_db_tgz
     String debug_dump_flag
     String ? snpeff_extra_params
+
+    String cohort_name
+    String vcf_out_fn = "${cohort_name}.snpeff.vcf"
+
+    String output_disk_gb
+    String boot_disk_gb = "10"
+    String ram_gb = "10"
+    String cpu_cores = "1"
+    String preemptible = "0"
+    String debug_dump_flag
     command {
         set -euo pipefail
+        ln -sT `pwd` /opt/execution
+        ln -sT `pwd`/../inputs /opt/inputs
+
         /opt/src/algutil/monitor_start.py
 python_cmd="
 import shutil
+import subprocess
+
 def run(cmd):
     print (cmd)
     subprocess.check_call(cmd, shell=True)
 
+#run('echo STARTING tar xvf to unpack vcf')
+#run('date')
+#run('tar xvf ${vcf_in}')
+
+run('tar xvf ${snpeff_db_tgz} -C data/')
+
+print "Copying Config..."
 shutil.copy2('/cil/shed/apps/external/snpEff/snpEff-4.1g/snpEff.config', '.')
-run('java -Xmx4G -jar ${snpeff} -formatEff -no-downstream -no-intergenic -no-upstream -no-utr \
-                 ${snpeff_db} ${vcf_in} ${snpeff_extra_params} > ${vcf_out}')
+print "Done copying config..."
+
+print "Running snpeff..."
+run(' \
+    java -Xmx4G -jar ${snpeff} \
+        -formatEff \
+        -no-downstream \
+        -no-intergenic \
+        -no-upstream \
+        -no-utr \
+        ${"-dataDir data/ "} \
+        ${vcf_in} \
+        ${snpeff_extra_params} > ${vcf_out_fn} \
+    ')
+
+print "Done running snpeff."
 "
 
         echo "$python_cmd"
+        set +e
         python -c "$python_cmd"
         export _exit_code=$?
+        set -e
         echo exit code is $exit_code
         ls
 
@@ -64,7 +97,6 @@ run('java -Xmx4G -jar ${snpeff} -formatEff -no-downstream -no-intergenic -no-ups
 
     }
     runtime {
-        task_name: "CombineVariants"
         docker : "gcr.io/btl-dockers/btl_gatk:1"
         memory: "${ram_gb}GB"
         cpu: "${cpu_cores}"
@@ -73,10 +105,11 @@ run('java -Xmx4G -jar ${snpeff} -formatEff -no-downstream -no-intergenic -no-ups
         preemptible: "${preemptible}"
     }
     output {
-        File out = vcf_out
+        File vcf_out = vcf_out_fn
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
         File dstat="dstat.log"
+        File debug_bundle="debug_bundle.tar.gz"
     }
     parameter_meta {
         vcf_in: "The input variants file."
