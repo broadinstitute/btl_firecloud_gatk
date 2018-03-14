@@ -1,6 +1,6 @@
 
 workflow gatk_snpeff {
-    call SnpEff
+    call gatk_snpeff_task
 }
 
 #TODO: How to handle the database issue: 1) Upload database to bucket location. 2) Pass location to WDL as a param
@@ -12,7 +12,7 @@ workflow gatk_snpeff {
 # a local db store?
 
 # Based on http://gatkforums.broadinstitute.org/gatk/discussion/50/adding-genomic-annotations-using-snpeff-and-variantannotator
-task SnpEff {
+task gatk_snpeff_task {
 #    File ? vqsr_vcf_tb
 #    File ? genotype_vcf_tb
 #    File ? filtration_vcf_tb
@@ -20,7 +20,6 @@ task SnpEff {
     File vcf_in
     String snpeff = "/cil/shed/apps/external/snpEff/snpEff-4.1g/snpEff.jar"
     String ? snpeff_db_tgz
-    String debug_dump_flag
     String ? snpeff_extra_params
 
     String cohort_name
@@ -51,9 +50,11 @@ def run(cmd):
 #run('tar xvf ${vcf_in}')
 
 run('tar xvf ${snpeff_db_tgz} -C data/')
-
+run('sleep 9999999')
 print "Copying Config..."
-shutil.copy2('/cil/shed/apps/external/snpEff/snpEff-4.1g/snpEff.config', '.')
+run('cp /cil/shed/apps/external/snpEff/snpEff-4.1g/snpEff.config .')
+
+#shutil.copy2('/cil/shed/apps/external/snpEff/snpEff-4.1g/snpEff.config', '.')
 print "Done copying config..."
 
 print "Running snpeff..."
