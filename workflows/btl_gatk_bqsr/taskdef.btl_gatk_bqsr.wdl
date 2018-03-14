@@ -1,18 +1,8 @@
  workflow gatk_bqsr {
  
-    File ? indelrealigner_bam
-    File ? uncleaned_bam
-    File ? indelrealigner_bam_index
-    File ? uncleaned_bam_index
-    
-    File in_bam = select_first([indelrealigner_bam, uncleaned_bam])
-    File in_bam_index = select_first([indelrealigner_bam_index, uncleaned_bam_index])
 
-    call gatk_bqsr_task{
-        input:
-            in_bam = in_bam,
-            in_bam_index = in_bam_index
-    }
+
+    call gatk_bqsr_task
 
  }
 
@@ -24,11 +14,13 @@ task gatk_bqsr_task {
     File in_bam_index
     String sample_name
     File reference_tgz
-    Array[String] known_sites
+    Array[File] known_sites_vcfs
+    Array[File] known_sites_vcf_tbis
 
     String recalibration_plots_fn = "${sample_name}.recalibration_plots.pdf"
     String out_bam_fn =  "${sample_name}.bqsr.bam"
     String out_bam_index_fn =  "${out_bam_fn}.bai"
+    String out_bqsr_table_fn = "${sample_name}.bqsr.table"
 
     String output_disk_gb 
     String boot_disk_gb = "10"
@@ -45,13 +37,33 @@ task gatk_bqsr_task {
         /opt/src/algutil/monitor_start.py
         python_cmd="
 import subprocess
+import os
 def run(cmd):
     print (cmd)
     subprocess.check_call(cmd,shell=True)
 
+#count number of CPU's
+fid = open('/proc/cpuinfo')
+cpu_count = 0
+for line in fid:
+    if 'processor' in line:
+        cpu_count = cpu_count + 1
+fid.close()
 
 run('ln -s ${in_bam} in.bam')
 run('ln -s ${in_bam_index} in.bam.bai')
+
+# Drop symlink to index next to each vcf file. Leave VCFs in original directories to avoid name clashes.
+# Assume that vcf and tbi list are ordered the same; downstream crash will result if not.
+for known_sites_vcf, known_sites_vcf_tbi in zip(['${sep="', '"   known_sites_vcfs }'], ['${sep="', '"   known_sites_vcf_tbis}']    ):
+
+    vcf_dir = os.path.dirname(known_sites_vcf)
+    tbi_fn = os.path.basename(known_sites_vcf_tbi)
+    tbi_symlink = os.path.join(vcf_dir,tbi_fn)
+    if tbi_symlink == known_sites_vcf_tbi:
+        continue
+    print('about to: ln %s %s'%(tbi_symlink, known_sites_vcf_tbi))
+    os.link(tbi_symlink, known_sites_vcf_tbi)
 
 run('echo STARTING tar xvf to unpack reference')
 run('date')
@@ -59,23 +71,28 @@ run('tar xvf ${reference_tgz}')
 
 run('echo STARTING BaseRecalibrator pass 1')
 run('date')
-run('java -Xmx4G  -jar ${gatk_path} -T BaseRecalibrator -nct 8 -nt 1 -R ref.fasta -I in.bam -knownSites ${sep=" -knownSites " known_sites} -o recal_data.table ')
+run('java -Xmx4G  -jar ${gatk_path} -T BaseRecalibrator -nct %d -nt 1 -R ref.fasta -I in.bam -knownSites ${sep=" -knownSites " known_sites_vcfs} -o recal_data.table '%cpu_count)
 
 run('echo STARTING BaseRecalibrator pass 2')
 run('date')
-run('java -Xmx4G  -jar ${gatk_path} -T BaseRecalibrator -nct 8 -nt 1 -R ref.fasta -I in.bam -knownSites ${sep=" -knownSites " known_sites} -o post_recal_data.table -BQSR recal_data.table')
+run('java -Xmx4G  -jar ${gatk_path} -T BaseRecalibrator -nct %d -nt 1 -R ref.fasta -I in.bam -knownSites ${sep=" -knownSites " known_sites_vcfs} -o post_recal_data.table -BQSR recal_data.table'%cpu_count)
 
 run('echo STARTING AnalyzeCovariates')
 run('date')
-run('java -Xmx8G -jar ${gatk_path} -T AnalyzeCovariates -R ref.fasta -before recal_data.table -after post_recal_data.table -plots ${recalibration_plots_fn}')
+# plots require R-3.1 to work
+#run('java -Xmx8G -jar ${gatk_path} -T AnalyzeCovariates -R ref.fasta -before recal_data.table -after post_recal_data.table -plots ${recalibration_plots_fn}')
+run('java -Xmx8G -jar ${gatk_path} -T AnalyzeCovariates -R ref.fasta -before recal_data.table -after post_recal_data.table -csv table.csv')
+run('touch ${recalibration_plots_fn}')
 
 run('echo STARTING PrintReads')
 run('date')
-run('java -Xmx4G -jar ${gatk_path} -T PrintReads -nct 8 -nt 1 -R ref.fasta -I in.bam -BQSR post_recal_data.table -o ${out_bam_fn}')
+run('java -Xmx4G -jar ${gatk_path} -T PrintReads -nct %d -nt 1 -R ref.fasta -I in.bam -BQSR post_recal_data.table -o ${out_bam_fn}'%cpu_count)
 
 run('echo STARTING index')
 run('date')
 run('samtools index ${out_bam_fn}')
+
+run('ln post_recal_data.table ${out_bqsr_table_fn}')
 
 run('echo DONE')
 run('date')
@@ -107,7 +124,8 @@ run('date')
     }
     output {
         File out_bam = "${out_bam_fn}"
-        File out_bam_index = "${out_bam_index}"
+        File out_bam_index = "${out_bam_index_fn}"
+        File out_bqsr_table = "${out_bqsr_table_fn}"
         File recalibration_plots = "${recalibration_plots_fn}"
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"

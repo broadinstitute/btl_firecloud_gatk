@@ -7,14 +7,17 @@ workflow gatk_vqsr{
 task gatk_vqsr_task {
     String gatk_path = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
     File reference_tgz
-    File ? intervals
 
     File genotype_caller_vcf
     #TODO make sure these array args are working
-    Array[String] snp_resource
-    Array[String] indel_resource
+
     Array[String] snp_annotation
     Array[String] indel_annotation
+    Array[File] known_sites_vcfs
+    Array[File] known_sites_vcf_tbis
+    Array[String] snp_resource_params
+    Array[String] indel_resource_params
+
     Int ? snp_max_gaussians
     Int ? indel_max_gaussians
     Int ? mq_cap_snp
@@ -42,6 +45,7 @@ task gatk_vqsr_task {
         /opt/src/algutil/monitor_start.py
         python_cmd="
 import subprocess
+import os
 def run(cmd):
     print (cmd)
     subprocess.check_call(cmd,shell=True)
@@ -51,10 +55,36 @@ run('echo STARTING tar xvf to unpack reference')
 run('date')
 run('tar xvf ${reference_tgz}')
 
+
+
+# Drop symlink to index next to each vcf file. Leave VCFs in original directories to avoid name clashes.
+# Assume that vcf and tbi list are ordered the same; downstream crash will result if not.
+snp_resource_args = ''
+indel_resource_args = ''
+for known_sites_vcf, known_sites_vcf_tbi, snp_resource, indel_resource in zip(
+    ['${sep="', '"   known_sites_vcfs }'], 
+    ['${sep="', '"   known_sites_vcf_tbis}'],
+    ['${sep="', '"   snp_resource_params }'], 
+    ['${sep="', '"   indel_resource_params}']    
+    ):
+
+    vcf_dir = os.path.dirname(known_sites_vcf)
+    tbi_fn = os.path.basename(known_sites_vcf_tbi)
+    tbi_symlink = os.path.join(vcf_dir,tbi_fn)
+    if tbi_symlink != known_sites_vcf_tbi:
+        print('about to: ln %s %s'%(tbi_symlink, known_sites_vcf_tbi))
+        os.link(tbi_symlink, known_sites_vcf_tbi)
+
+# -resource:3d7_hb3,known=false,training=true,truth=true,prior=15.0 /gsap/garage-protistvector/U19_Aim4/Pf3K/3d7_hb3.combined.final.vcf.gz   
+    snp_resource_args += '-resource:%s %s '%(snp_resource, known_sites_vcf)
+    indel_resource_args += '-resource:%s %s '%(indel_resource, known_sites_vcf)
+
+
 run('echo STARTING VariantRecalibrator-SNP')
 run('date')
-#			${default="" "--intervals " + intervals} \
-run('''\
+
+#            -rscriptFile snp.plots.R \
+run('\
         java -Xmx8G -jar ${gatk_path} \
             -T VariantRecalibrator \
             -R ref.fasta \
@@ -62,60 +92,61 @@ run('''\
             -mode snp \
             -recalFile snp.recal \
             -tranchesFile snp.tranches \
-            -rscriptFile snp.plots.R \
-            -resource:${sep=" -resource:" snp_resource} \
+            %s \
             -an ${sep=" -an " snp_annotation} \
             --maxGaussians ${snp_max_gaussians} \
-            --MQCapForLogitJitterTransform ${mq_cap_snp}
-            ${default="\n" extra_vr_params}
-''')
+            --MQCapForLogitJitterTransform ${mq_cap_snp} \
+            ${default="" extra_vr_params}\
+            '%snp_resource_args)
 
 run('echo STARTING ApplyRecalibration-SNP')
 run('date')
-run('''\
-        java -Xmx8G -jar ${gatk_path} \
-            -T ApplyRecalibration \
-            -R ref.fasta \
-            -input ${genotype_caller_vcf} \
-            --ts_filter_level ${ts_filter_snp} \
-            -tranchesFile snp.tranches \
-            -recalFile snp.recal \
-            -mode "snp" \
-            -o snp.recalibrated.filtered.vcf
-''')
+run('java -Xmx8G -jar ${gatk_path} \
+    -T ApplyRecalibration \
+    -R ref.fasta \
+    -input ${genotype_caller_vcf} \
+    --ts_filter_level ${ts_filter_snp} \
+    -tranchesFile snp.tranches \
+    -recalFile snp.recal \
+    -mode snp \
+    -o snp.recalibrated.filtered.vcf \
+    ')
+
+
+
 
 run('echo STARTING VariantRecalibrator-INDEL')
 run('date')
-#			${default="" "--intervals " + intervals} \
-run('''\
+
+#            -rscriptFile indel.plots.R \
+run('\
         java -Xmx8G -jar ${gatk_path} \
             -T VariantRecalibrator \
             -R ref.fasta \
             -input snp.recalibrated.filtered.vcf \
-            -mode "indel" \
+            -mode indel \
             -recalFile indel.recal \
             -tranchesFile indel.tranches \
-            -rscriptFile indel.plots.R \
-            -resource:${sep=" -resource:" indel_resource} \
+            %s \
             -an ${sep=" -an " indel_annotation} \
             --maxGaussians ${indel_max_gaussians} \
-            --MQCapForLogitJitterTransform ${mq_cap_indel}
-            ${default="\n" extra_vr_params}
-''')
+            --MQCapForLogitJitterTransform ${mq_cap_indel} \
+            ${default="" extra_vr_params} \
+'%indel_resource_args)
 
 run('echo STARTING ApplyRecalibration-INDEL')
 run('date')
-run('''\
-        java -Xmx8G -jar ${gatk_path} \
-            -T ApplyRecalibration \
-            -R ref.fasta \
-            -input snp.recalibrated.filtered.vcf \
-            --ts_filter_level ${ts_filter_indel} \
-            -tranchesFile indel.tranches \
-            -recalFile indel.recal \
-            -mode "indel" \
-            -o ${vcf_out_fn}
-''')
+run('\
+    java -Xmx8G -jar ${gatk_path} \
+        -T ApplyRecalibration \
+        -R ref.fasta \
+        -input snp.recalibrated.filtered.vcf \
+        --ts_filter_level ${ts_filter_indel} \
+        -tranchesFile indel.tranches \
+        -recalFile indel.recal \
+        -mode indel \
+        -o ${vcf_out_fn}\
+')
 
 run('echo DONE')
 run('date')

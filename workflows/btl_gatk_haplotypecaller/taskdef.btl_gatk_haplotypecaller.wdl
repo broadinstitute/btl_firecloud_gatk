@@ -1,20 +1,6 @@
 workflow gatk_haplotypecaller {
 
-    File ? bqsr_bam
-    File ? indelrealigner_bam
-    File ? uncleaned_bam
-    File ? bqsr_bam_index
-    File ? indelrealigner_bam_index
-    File ? uncleaned_bam_index
-
-    File in_bam = select_first([bqsr_bam, indelrealigner_bam, uncleaned_bam])
-    File in_bam_index = select_first([bqsr_bam_index, indelrealigner_bam_index, uncleaned_bam_index])
-
-    call gatk_haplotypecaller_task {
-        input:
-        in_bam = in_bam,
-        in_bam_index = in_bam_index
-    }
+    call gatk_haplotypecaller_task 
 
 }
 
@@ -26,8 +12,7 @@ task gatk_haplotypecaller_task {
     File in_bam_index
     String sample_name
 
-    #Float interval_size
-    File ? bqsr_file
+    File ? bqsr_table
     String ? ploidy
     String ? erc
     String ? extra_hc_params
@@ -35,7 +20,7 @@ task gatk_haplotypecaller_task {
 
 
     File reference_tgz
-    Array[String] known_sites
+
 
 
     String out_gvcf_fn = "${sample_name}.gvcf"
@@ -72,19 +57,20 @@ run('tar xvf ${reference_tgz}')
 #run('''\
 #python /opt/src/intervals_creator.py \
 #    -r ref.fasta \
-#    -i $interval_size \
+#    -i $   padding  interval_size \
 #    > intervals.list
 #''')
 #			--intervals intervals.list \
 #			--interval_padding 100 \
 
 run('''\
+
         java -Xmx8G -jar ${gatk_path} \
             -T HaplotypeCaller \
             -nt 1 \
             -R ref.fasta \
             --input_file ${in_bam} \
-            ${"-BQSR " + bqsr_file} \
+            ${"-BQSR " + bqsr_table} \
             -ERC ${default="GVCF" erc} \
             -ploidy ${default="2" ploidy} \
             -o ${out_gvcf_fn} \

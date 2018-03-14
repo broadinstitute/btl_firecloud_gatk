@@ -1,20 +1,25 @@
-workflow gatk_tcir {
+workflow gatk_variant_filtration {
+# http://gatkforums.broadinstitute.org/gatk/discussion/2806/howto-apply-hard-filters-to-a-call-set
 
-    call gatk_tcir_task
 
+
+
+
+    call gatk_variant_filtration_task 
 }
 
 
 
-task gatk_tcir_task {
+task gatk_variant_filtration_task {
     String gatk_path = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
-    File in_bam
-    File in_bam_index
-    String sample_name
+    String cohort_name
     File reference_tgz
+    String snp_filter_expression
+    String indel_filter_expression
+    File sv_vcf
 
-    String out_bam_fn =  "${sample_name}.tcir.bam"
-    String out_bam_index_fn =  "${out_bam_fn}.bai"
+    String vcf_out_fn = "${cohort_name}.variant.filtered.vcf"
+
 
     String output_disk_gb 
     String boot_disk_gb = "10"
@@ -36,28 +41,73 @@ def run(cmd):
     subprocess.check_call(cmd,shell=True)
 
 
-run('ln -s ${in_bam} in.bam')
-run('ln -s ${in_bam_index} in.bam.bai')
 
 run('echo STARTING tar xvf to unpack reference')
 run('date')
 run('tar xvf ${reference_tgz}')
 
-run('echo STARTING RealignerTargetCreator')
+run('echo STARTING SelectVariants-SNP')
 run('date')
+run('''\
+        java -Xmx8G -jar ${gatk_path} \
+            -T SelectVariants \
+            -R ref.fasta \
+            -V ${sv_vcf} \
+            -selectType SNP \
+            -o selectSNPs.vcf
+''')
 
-run('java -Xmx8G -jar ${gatk_path} -T RealignerTargetCreator -nct 1 -nt 24 -R ref.fasta -I in.bam -o tcir.intervals.list ')
 
-
-run('echo STARTING IndelRealigner')
+run('echo STARTING VariantFiltration-SNP')
 run('date')
-run('java -Xmx4G -jar ${gatk_path} -T IndelRealigner -nct 1 -nt 1 -R ref.fasta -I in.bam -targetIntervals tcir.intervals.list -o ${out_bam_fn}')
+run('''\
+        java -Xmx8G -jar ${gatk_path} \
+            -T VariantFiltration \
+            -R ref.fasta \
+            -V selectSNPs.vcf \
+            --filterExpression '${snp_filter_expression}' \
+            --filterName my_variant_filter \
+            -o filtered_SNPs.vcf
+''')
 
-
-
-run('echo STARTING index')
+run('echo STARTING SelectVariants-INDEL')
 run('date')
-run('samtools index ${out_bam_fn}')
+run('''\
+        java -Xmx8G -jar ${gatk_path} \
+            -T SelectVariants \
+            -R ref.fasta \
+            -V ${sv_vcf} \
+            -selectType INDEL \
+            -o selectINDELs.vcf
+''')
+
+
+run('echo STARTING VariantFiltration-INDEL')
+run('date')
+run('''\
+        java -Xmx8G -jar ${gatk_path} \
+            -T VariantFiltration \
+            -R ref.fasta \
+            -V selectINDELs.vcf \
+            --filterExpression '${indel_filter_expression}' \
+            --filterName my_variant_filter \
+            -o filtered_INDELs.vcf
+''')
+
+
+run('echo STARTING VariantFiltration-INDEL')
+run('date')
+run('''\
+        java -jar -Xmx8G ${gatk_path} \
+            -T CombineVariants \
+            -R ref.fasta \
+            --variant filtered_SNPs.vcf \
+            --variant filtered_INDELs.vcf \
+            -o ${vcf_out_fn} \
+            -genotypeMergeOptions UNIQUIFY
+''')
+
+
 
 run('echo DONE')
 run('date')
@@ -88,8 +138,7 @@ run('date')
 
     }
     output {
-        File out_bam = "${out_bam_fn}"
-        File out_bam_index = "${out_bam_index_fn}"
+        File vcf_out = "${vcf_out_fn}"
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
         File dstat="dstat.log"

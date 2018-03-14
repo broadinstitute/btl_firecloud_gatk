@@ -49,8 +49,20 @@ FDT issue - set permissions in pushwdl
 
 --------------------------
 --------------------------
+
+* Xpull create intervals list out into a one-per-cohort block? or 
+* interval list replicate in blocks needing it, pass in interval size
+* current implementation starts with bam; should it allow fastq start?
+* update the parameter metadata sections
+* systematize file name path variable names
+* use run(''' ''') for multiline calls everywhere
+* check wiring via selects
+* perhaps seprate modules depending on aligned bam, unaligned bam, or fastq, each one dumping to the same attribute
+* update the timestamp section to dump block elapsed and total elapsed seconds
+
 * pull create intervals list out into a one-per-cohort block
 * perhaps drop symlink from home and /tmp directories to point to output dir
+
 
 -------
 -------

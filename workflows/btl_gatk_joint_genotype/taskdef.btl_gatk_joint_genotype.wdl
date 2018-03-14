@@ -10,7 +10,6 @@ task gatk_joint_genotype_task {
     Boolean ? all_sites
     String gatk_path = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
 
-    #File intervals
 
     File reference_tgz
 
@@ -43,8 +42,7 @@ run('echo STARTING tar xvf to unpack reference')
 run('date')
 run('tar xvf ${reference_tgz}')
 
-# add back in when actually scattering haplotype caller
-#			$sep=" --intervals " "--intervals " + intervals \
+# add intervals back in when actually scattering haplotype caller
 
 run('''\
         java -Xmx8G -jar ${gatk_path} \

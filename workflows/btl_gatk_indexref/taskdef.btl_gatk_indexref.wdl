@@ -1,5 +1,7 @@
 
 workflow gatk_indexref {
+    String? onprem_download_path
+    Map[String, String]? handoff_files
 
     # Check's if index files exist(using .dict file as marker). Will always output path to localized reference
     # With assumption that it either exists or will be created by IndexReference.

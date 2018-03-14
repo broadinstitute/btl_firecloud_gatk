@@ -3,7 +3,9 @@ workflow gatk_alignbam {
 
     call gatk_alignbam_task 
 }
-#TODO allow fastq inputs instead of bam?
+
+# TODO break off the portion after BAM-to-fastq
+
 
 
 task gatk_alignbam_task {
