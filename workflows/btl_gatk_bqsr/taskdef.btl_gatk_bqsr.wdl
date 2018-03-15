@@ -71,22 +71,60 @@ run('tar xvf ${reference_tgz}')
 
 run('echo STARTING BaseRecalibrator pass 1')
 run('date')
-run('java -Xmx4G  -jar ${gatk_path} -T BaseRecalibrator -nct %d -nt 1 -R ref.fasta -I in.bam -knownSites ${sep=" -knownSites " known_sites_vcfs} -o recal_data.table '%cpu_count)
+run('java -Xmx4G  \
+    -jar ${gatk_path} \
+    -T BaseRecalibrator \
+    -nct %d \
+    -nt 1 \
+    -R ref.fasta \
+    -I in.bam \
+    -knownSites ${sep=" -knownSites " known_sites_vcfs} \
+    -o recal_data.table \
+    '%cpu_count)
 
 run('echo STARTING BaseRecalibrator pass 2')
 run('date')
-run('java -Xmx4G  -jar ${gatk_path} -T BaseRecalibrator -nct %d -nt 1 -R ref.fasta -I in.bam -knownSites ${sep=" -knownSites " known_sites_vcfs} -o post_recal_data.table -BQSR recal_data.table'%cpu_count)
+run('java -Xmx4G  \
+    -jar ${gatk_path} \
+    -T BaseRecalibrator \
+    -nct %d \
+    -nt 1 \
+    -R ref.fasta \
+    -I in.bam \
+    -knownSites ${sep=" -knownSites " known_sites_vcfs} \
+    -o post_recal_data.table \
+    -BQSR recal_data.table\
+    '%cpu_count)
 
 run('echo STARTING AnalyzeCovariates')
 run('date')
 # plots require R-3.1 to work
-#run('java -Xmx8G -jar ${gatk_path} -T AnalyzeCovariates -R ref.fasta -before recal_data.table -after post_recal_data.table -plots ${recalibration_plots_fn}')
-run('java -Xmx8G -jar ${gatk_path} -T AnalyzeCovariates -R ref.fasta -before recal_data.table -after post_recal_data.table -csv table.csv')
-run('touch ${recalibration_plots_fn}')
+#     -l DEBUG 
+run('java -Xmx8G \
+    -jar ${gatk_path} \
+    -T AnalyzeCovariates \
+    -R ref.fasta \
+    -before recal_data.table \
+    -after post_recal_data.table \
+    -plots ${recalibration_plots_fn} \
+    ')
+
+# alternative that skips plotting and emits table instead
+#run('java -Xmx8G -jar ${gatk_path} -T AnalyzeCovariates -R ref.fasta -before recal_data.table -after post_recal_data.table -csv table.csv')
+#run('touch ${recalibration_plots_fn}')
 
 run('echo STARTING PrintReads')
 run('date')
-run('java -Xmx4G -jar ${gatk_path} -T PrintReads -nct %d -nt 1 -R ref.fasta -I in.bam -BQSR post_recal_data.table -o ${out_bam_fn}'%cpu_count)
+run('java -Xmx4G \
+    -jar ${gatk_path} \
+    -T PrintReads \
+    -nct %d \
+    -nt 1 \
+    -R ref.fasta \
+    -I in.bam \
+    -BQSR post_recal_data.table \
+    -o ${out_bam_fn} \
+    '%cpu_count)
 
 run('echo STARTING index')
 run('date')
