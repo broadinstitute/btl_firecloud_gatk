@@ -70,7 +70,7 @@ def get_metadata():
 
 def run_wdl(wdl_path, inputs_dict):
     global submission_id
-    global running
+    global running #set to true when we want to purge workflow upon control-C
 
     running = False
     submit_url = base_url + '/api/workflows/v1'
@@ -82,7 +82,7 @@ def run_wdl(wdl_path, inputs_dict):
             'workflowInputs': ('input.json', input_json, "application/json")}
     # TODO add option to disable caching for this submission, via  data fields: {"read_from_cache": false}
 
-
+    running = True
     r = requests.post(submit_url, headers=headers, files=files, timeout=10 )
 
     print(r.status_code)
@@ -100,7 +100,6 @@ def run_wdl(wdl_path, inputs_dict):
         raise exception('status is %s'%submission_response['status'])
 
     submission_id = submission_response['id']
-    running = True
 
     # curl -X GET "http://35.193.85.62:8000/api/workflows/v1/9bdc4d55-d551-4608-80b0-6a86e57bd2a0/status" -H "accept: application/json"
 
