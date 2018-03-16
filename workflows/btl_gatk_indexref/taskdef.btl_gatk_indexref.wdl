@@ -9,7 +9,7 @@ workflow gatk_indexref {
 }
 
 
-task IndexReference {
+task gatk_indexref_task {
     File ref_fasta
     #TODO try to autocalculate ref_name from ref_fasta input
     String ref_name
