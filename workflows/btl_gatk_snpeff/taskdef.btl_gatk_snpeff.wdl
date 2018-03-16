@@ -1,5 +1,8 @@
 
 workflow gatk_snpeff {
+    String? onprem_download_path
+    Map[String, String]? handoff_files
+
     call gatk_snpeff_task
 }
 

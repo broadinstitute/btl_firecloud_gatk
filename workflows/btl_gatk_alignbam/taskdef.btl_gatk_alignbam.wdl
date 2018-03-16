@@ -1,5 +1,7 @@
 
 workflow gatk_alignbam {
+    String? onprem_download_path
+    Map[String, String]? handoff_files
 
     call gatk_alignbam_task 
 }

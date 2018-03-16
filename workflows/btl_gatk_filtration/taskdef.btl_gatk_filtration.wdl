@@ -1,5 +1,7 @@
 workflow gatk_filtration {
 # http://gatkforums.broadinstitute.org/gatk/discussion/2806/howto-apply-hard-filters-to-a-call-set
+    String? onprem_download_path
+    Map[String, String]? handoff_files
 
 
 

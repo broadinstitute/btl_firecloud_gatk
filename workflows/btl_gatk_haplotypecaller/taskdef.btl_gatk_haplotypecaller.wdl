@@ -1,4 +1,6 @@
 workflow gatk_haplotypecaller {
+    String? onprem_download_path
+    Map[String, String]? handoff_files
 
     call gatk_haplotypecaller_task 
 

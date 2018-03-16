@@ -1,6 +1,6 @@
  workflow gatk_bqsr {
- 
-
+    String? onprem_download_path
+    Map[String, String]? handoff_files
 
     call gatk_bqsr_task
 

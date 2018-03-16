@@ -1,5 +1,8 @@
 workflow gatk_joint_genotype {
-    call gatk_joint_genotype_task 
+    String? onprem_download_path
+    Map[String, String]? handoff_files
+
+    call gatk_joint_genotype_task
 }
 
 

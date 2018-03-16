@@ -1,4 +1,6 @@
 workflow gatk_tcir {
+    String? onprem_download_path
+    Map[String, String]? handoff_files
 
     call gatk_tcir_task
 

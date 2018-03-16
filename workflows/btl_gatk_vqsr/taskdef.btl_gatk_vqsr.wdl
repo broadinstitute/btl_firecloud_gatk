@@ -1,5 +1,8 @@
 workflow gatk_vqsr{
     # https://software.broadinstitute.org/gatk/documentation/article.php?id=1259
+    String? onprem_download_path
+    Map[String, String]? handoff_files
+
     call gatk_vqsr_task
 }
 
