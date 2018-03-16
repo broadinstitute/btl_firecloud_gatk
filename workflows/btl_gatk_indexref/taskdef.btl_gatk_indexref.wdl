@@ -5,7 +5,7 @@ workflow gatk_indexref {
 
     # Check's if index files exist(using .dict file as marker). Will always output path to localized reference
     # With assumption that it either exists or will be created by IndexReference.
-    call IndexReference 
+    call gatk_indexref_task
 }
 
 
