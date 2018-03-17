@@ -9,22 +9,23 @@ def check_run_wdl(wdl_path, inputs_dict):
 
 def run_index_reference(inputs):
 
+
     indexref_wdl_path = 'btl_gatk_indexref/taskdef.btl_gatk_indexref.wdl'
     indexref_inputs = {
-        "gatk_indexref.IndexReference.ref_name": inputs['ref_name'],
-        "gatk_indexref.IndexReference.output_disk_gb": "1000",
-        "gatk_indexref.IndexReference.ref_fasta": inputs['ref_fasta'],
-        "gatk_indexref.IndexReference.debug_dump_flag": "onfail"
+        "gatk_indexref.gatk_indexref_task.ref_name": inputs['ref_name'],
+        "gatk_indexref.gatk_indexref_task.output_disk_gb": "1000",
+        "gatk_indexref.gatk_indexref_task.ref_fasta": inputs['ref_fasta'],
+        "gatk_indexref.gatk_indexref_task.debug_dump_flag": "onfail"
         }
 
     if True:
         indexref_outputs = check_run_wdl(indexref_wdl_path, indexref_inputs)
     else:
         indexref_outputs = {
-            'gatk_indexref.IndexReference.reference_tgz':'gs://broad-cil-devel-bucket/gatk_indexref/5e5363b4-4ff5-4e49-a8eb-7db0218c4125/call-IndexReference/minion_illumina_hybrid_clean_MT.tgz'
+            'gatk_indexref.gatk_indexref_task.reference_tgz':'gs://broad-cil-devel-bucket/gatk_indexref/5e5363b4-4ff5-4e49-a8eb-7db0218c4125/call-IndexReference/minion_illumina_hybrid_clean_MT.tgz'
         }
 
-    outputs = {'reference_tgz':indexref_outputs['gatk_indexref.IndexReference.reference_tgz']}
+    outputs = {'reference_tgz':indexref_outputs['gatk_indexref.gatk_indexref_task.reference_tgz']}
     return outputs
 
 
