@@ -12,6 +12,8 @@ import subprocess
 
 #curl -X POST "http://35.193.85.62:8000/api/workflows/v1" -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "workflowSource=@taskdef.btl_gatk_indexref.wdl;type=" -F "workflowInputs=@inputtest.btl_gatk_indexref.json;type=application/json"
 
+#TODO add summary stats output - elapsed time, start time, end time, output bucket root, wdl file name, wdl contents, inputs, outputs, high-water marks from any dstat file
+
 
 global submission_id
 global running
