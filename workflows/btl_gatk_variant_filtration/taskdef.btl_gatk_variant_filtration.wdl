@@ -21,7 +21,7 @@ task gatk_variant_filtration_task {
 
     String output_disk_gb 
     String boot_disk_gb = "10"
-    String ram_gb = "10"
+    String ram_gb = "60"
     String cpu_cores = "1"
     String preemptible = "0"
     String debug_dump_flag
