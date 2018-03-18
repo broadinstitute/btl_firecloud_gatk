@@ -1,10 +1,14 @@
 from runcromwellremote import run_wdl
+import sys
 
 
 def check_run_wdl(wdl_path, inputs_dict):
     passed, outputs = run_wdl(wdl_path, inputs_dict)
     if not passed:
         sys.exit(1)
+    fid = open('run_wdl.log','a')
+    fid.write(str(outputs) + '\n\n')
+    fid.close()
     return outputs
 
 def run_index_reference(inputs):
@@ -18,11 +22,11 @@ def run_index_reference(inputs):
         "gatk_indexref.gatk_indexref_task.debug_dump_flag": "onfail"
         }
 
-    if True:
+    if False:
         indexref_outputs = check_run_wdl(indexref_wdl_path, indexref_inputs)
     else:
         indexref_outputs = {
-            'gatk_indexref.gatk_indexref_task.reference_tgz':'gs://broad-cil-devel-bucket/gatk_indexref/5e5363b4-4ff5-4e49-a8eb-7db0218c4125/call-IndexReference/minion_illumina_hybrid_clean_MT.tgz'
+            'gatk_indexref.gatk_indexref_task.reference_tgz':'gs://broad-cil-devel-bucket/gatk_indexref/0e409344-5f52-43dc-b811-4b00f517226c/call-gatk_indexref_task/AgPEST_v4.tgz'
         }
 
     outputs = {'reference_tgz':indexref_outputs['gatk_indexref.gatk_indexref_task.reference_tgz']}
@@ -210,7 +214,7 @@ if __name__ == '__main__':
 
 
     input_bams_by_sample_name={
-        'Mali1_wgs','gs://broad-cil-devel-bucket/input_data/171226_Anopheles_Longranger_topoff__Mali1_wgs__phased_possorted_bam.bam'
+        'Mali1_wgs':'gs://broad-cil-devel-bucket/input_data/171226_Anopheles_Longranger_topoff__Mali1_wgs__phased_possorted_bam.bam'
     }
 
     if True: 
