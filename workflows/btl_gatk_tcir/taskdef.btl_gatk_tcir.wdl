@@ -53,7 +53,7 @@ run('java -Xmx50G -jar ${gatk_path} -T RealignerTargetCreator -nct 1 -nt 16 -R r
 
 run('echo STARTING IndelRealigner')
 run('date')
-run('java -Xmx50G -jar ${gatk_path} -T IndelRealigner -nct 1 -nt 1 -R ref.fasta -I in.bam -targetIntervals tcir.intervals.list -o ${out_bam_fn}')
+run('java -Xms50G -jar ${gatk_path} -T IndelRealigner -nct 1 -nt 1 -R ref.fasta -I in.bam -targetIntervals tcir.intervals.list -o ${out_bam_fn}')
 
 
 
@@ -78,10 +78,10 @@ run('date')
         then
             echo "Creating debug bundle"
             # tar up the output directory
-            touch debug_bundle.tar.gz
-            tar cfz debug_bundle.tar.gz --exclude=debug_bundle.tar.gz .
+            touch debug_bundle.tar
+            tar cf debug_bundle.tar --exclude=debug_bundle.tar .
         else
-            touch debug_bundle.tar.gz
+            touch debug_bundle.tar
         fi     
         /opt/src/algutil/monitor_stop.py
 
@@ -95,7 +95,7 @@ run('date')
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
         File dstat="dstat.log"
-        File debug_bundle="debug_bundle.tar.gz"
+        File debug_bundle="debug_bundle.tar"
     } runtime {
         docker : "gcr.io/btl-dockers/btl_gatk:1"
         memory: "${ram_gb}GB"

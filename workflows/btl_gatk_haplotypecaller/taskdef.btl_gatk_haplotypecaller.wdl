@@ -69,7 +69,6 @@ run('''\
 
         java -Xmx50G -jar ${gatk_path} \
             -T HaplotypeCaller \
-            -nt 16 \
             -R ref.fasta \
             --input_file ${in_bam} \
             ${"-BQSR " + bqsr_table} \
