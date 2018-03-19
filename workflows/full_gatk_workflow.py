@@ -45,12 +45,12 @@ def run_process_sample(inputs):
         'gatk_alignbam.gatk_alignbam_task.debug_dump_flag':'onfail',
 
         }
-    if True:
+    if False:
         alignbam_outputs = check_run_wdl(alignbam_wdl_path, alignbam_inputs)
     else:
         alignbam_outputs = {
-            'gatk_alignbam.gatk_alignbam_task.out_bam':'gs://broad-cil-devel-bucket/gatk_alignbam/1cd6a7fa-080f-4008-8e06-bc7eaad72b60/call-gatk_alignbam_task/Candida_Auris.bam',
-            'gatk_alignbam.gatk_alignbam_task.out_bam_index':'gs://broad-cil-devel-bucket/gatk_alignbam/1cd6a7fa-080f-4008-8e06-bc7eaad72b60/call-gatk_alignbam_task/Candida_Auris.bam.bai'
+            'gatk_alignbam.gatk_alignbam_task.out_bam':'gs://broad-cil-devel-bucket/gatk_alignbam/b7c72caa-9c05-4c94-9da4-e842f45ec637/call-gatk_alignbam_task/Mali1_wgs.bam',
+            'gatk_alignbam.gatk_alignbam_task.out_bam_index':'gs://broad-cil-devel-bucket/gatk_alignbam/b7c72caa-9c05-4c94-9da4-e842f45ec637/call-gatk_alignbam_task/Mali1_wgs.bam.bai'         
         }
 
 
@@ -208,7 +208,7 @@ if __name__ == '__main__':
         index_reference_outputs = run_index_reference(index_reference_inputs)
     else:
         index_reference_outputs = {
-            'reference_tgz':'gs://broad-cil-devel-bucket/gatk_indexref/5e5363b4-4ff5-4e49-a8eb-7db0218c4125/call-IndexReference/minion_illumina_hybrid_clean_MT.tgz'
+            'reference_tgz':'gs://broad-cil-devel-bucket/gatk_indexref/0e409344-5f52-43dc-b811-4b00f517226c/call-gatk_indexref_task/AgPEST_v4.tgz'
         }
 
 

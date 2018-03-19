@@ -7,7 +7,7 @@ workflow gatk_alignbam {
 }
 
 # TODO break off the portion after BAM-to-fastq
-
+# todo only bamtofastq requires n1-highmem-32, the others are fine with n1-standard-32 or lower, for 100GB BAM
 
 
 task gatk_alignbam_task {
