@@ -46,7 +46,7 @@ run('tar xvf ${reference_tgz}')
 run('echo STARTING VariantFiltration')
 run('date')
 run('''\
-        java -Xmx8G -jar ${gatk_path} \
+        java -Xmx50G -jar ${gatk_path} \
             -T VariantFiltration \
             -R ref.fasta \
             -V ${sv_vcf} \

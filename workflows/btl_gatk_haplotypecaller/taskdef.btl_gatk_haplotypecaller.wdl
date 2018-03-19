@@ -67,9 +67,9 @@ run('tar xvf ${reference_tgz}')
 
 run('''\
 
-        java -Xmx8G -jar ${gatk_path} \
+        java -Xmx50G -jar ${gatk_path} \
             -T HaplotypeCaller \
-            -nt 1 \
+            -nt 16 \
             -R ref.fasta \
             --input_file ${in_bam} \
             ${"-BQSR " + bqsr_table} \

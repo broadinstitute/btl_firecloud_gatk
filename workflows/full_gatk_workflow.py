@@ -188,7 +188,7 @@ def run_process_cohort(inputs):
         'gatk_variant_filtration.gatk_variant_filtration_task.indel_filter_expression':"VQSLOD <= 0.0",
         }
     #hack vcf input for now - VQSR failing, perhaps due to having only one sample
-    #variant_filtration_inputs['gatk_variant_filtration.sv_vcf'] = joint_genotype_outputs['gatk_joint_genotype.gatk_joint_genotype_task.vcf_out']
+    variant_filtration_inputs['gatk_variant_filtration.sv_vcf'] = joint_genotype_outputs['gatk_joint_genotype.gatk_joint_genotype_task.vcf_out']
     if True:
         variant_filtration_outputs = check_run_wdl(variant_filtration_wdl_path, variant_filtration_inputs)
     else:

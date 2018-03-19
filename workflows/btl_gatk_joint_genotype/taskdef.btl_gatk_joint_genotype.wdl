@@ -48,7 +48,7 @@ run('tar xvf ${reference_tgz}')
 # add intervals back in when actually scattering haplotype caller
 
 run('''\
-        java -Xmx8G -jar ${gatk_path} \
+        java -Xmx50G -jar ${gatk_path} \
             -T GenotypeGVCFs \
             -R ref.fasta \
             -o ${vcf_out_fn} \

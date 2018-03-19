@@ -71,7 +71,7 @@ run('tar xvf ${reference_tgz}')
 
 run('echo STARTING BaseRecalibrator pass 1')
 run('date')
-run('java -Xmx4G  \
+run('java -Xmx50G  \
     -jar ${gatk_path} \
     -T BaseRecalibrator \
     -nct %d \
@@ -84,7 +84,7 @@ run('java -Xmx4G  \
 
 run('echo STARTING BaseRecalibrator pass 2')
 run('date')
-run('java -Xmx4G  \
+run('java -Xmx50G  \
     -jar ${gatk_path} \
     -T BaseRecalibrator \
     -nct %d \
@@ -100,7 +100,7 @@ run('echo STARTING AnalyzeCovariates')
 run('date')
 # plots require R-3.1 to work
 #     -l DEBUG 
-run('java -Xmx8G \
+run('java -Xmx50G \
     -jar ${gatk_path} \
     -T AnalyzeCovariates \
     -R ref.fasta \
@@ -115,7 +115,7 @@ run('java -Xmx8G \
 
 run('echo STARTING PrintReads')
 run('date')
-run('java -Xmx4G \
+run('java -Xmx50G \
     -jar ${gatk_path} \
     -T PrintReads \
     -nct %d \

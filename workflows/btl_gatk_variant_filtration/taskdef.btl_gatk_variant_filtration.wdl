@@ -47,7 +47,7 @@ run('tar xvf ${reference_tgz}')
 run('echo STARTING SelectVariants-SNP')
 run('date')
 run('''\
-        java -Xmx8G -jar ${gatk_path} \
+        java -Xmx50G -jar ${gatk_path} \
             -T SelectVariants \
             -R ref.fasta \
             -V ${sv_vcf} \
@@ -59,7 +59,7 @@ run('''\
 run('echo STARTING VariantFiltration-SNP')
 run('date')
 run('''\
-        java -Xmx8G -jar ${gatk_path} \
+        java -Xmx50G -jar ${gatk_path} \
             -T VariantFiltration \
             -R ref.fasta \
             -V selectSNPs.vcf \
@@ -71,7 +71,7 @@ run('''\
 run('echo STARTING SelectVariants-INDEL')
 run('date')
 run('''\
-        java -Xmx8G -jar ${gatk_path} \
+        java -Xmx50G -jar ${gatk_path} \
             -T SelectVariants \
             -R ref.fasta \
             -V ${sv_vcf} \
@@ -83,7 +83,7 @@ run('''\
 run('echo STARTING VariantFiltration-INDEL')
 run('date')
 run('''\
-        java -Xmx8G -jar ${gatk_path} \
+        java -Xmx50G -jar ${gatk_path} \
             -T VariantFiltration \
             -R ref.fasta \
             -V selectINDELs.vcf \
@@ -96,7 +96,7 @@ run('''\
 run('echo STARTING VariantFiltration-INDEL')
 run('date')
 run('''\
-        java -jar -Xmx8G ${gatk_path} \
+        java -jar -Xmx50G ${gatk_path} \
             -T CombineVariants \
             -R ref.fasta \
             --variant filtered_SNPs.vcf \

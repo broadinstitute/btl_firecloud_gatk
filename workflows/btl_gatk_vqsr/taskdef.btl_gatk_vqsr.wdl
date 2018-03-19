@@ -88,7 +88,7 @@ run('date')
 
 #            -rscriptFile snp.plots.R \
 run('\
-        java -Xmx8G -jar ${gatk_path} \
+        java -Xmx50G -jar ${gatk_path} \
             -T VariantRecalibrator \
             -R ref.fasta \
             -input ${genotype_caller_vcf} \
@@ -104,7 +104,7 @@ run('\
 
 run('echo STARTING ApplyRecalibration-SNP')
 run('date')
-run('java -Xmx8G -jar ${gatk_path} \
+run('java -Xmx50G -jar ${gatk_path} \
     -T ApplyRecalibration \
     -R ref.fasta \
     -input ${genotype_caller_vcf} \
@@ -123,7 +123,7 @@ run('date')
 
 #            -rscriptFile indel.plots.R \
 run('\
-        java -Xmx8G -jar ${gatk_path} \
+        java -Xmx50G -jar ${gatk_path} \
             -T VariantRecalibrator \
             -R ref.fasta \
             -input snp.recalibrated.filtered.vcf \
@@ -140,7 +140,7 @@ run('\
 run('echo STARTING ApplyRecalibration-INDEL')
 run('date')
 run('\
-    java -Xmx8G -jar ${gatk_path} \
+    java -Xmx50G -jar ${gatk_path} \
         -T ApplyRecalibration \
         -R ref.fasta \
         -input snp.recalibrated.filtered.vcf \

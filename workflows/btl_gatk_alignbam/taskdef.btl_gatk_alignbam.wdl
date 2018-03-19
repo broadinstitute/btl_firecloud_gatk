@@ -28,8 +28,8 @@ task gatk_alignbam_task {
 
     String output_disk_gb 
     String boot_disk_gb = "10"
-    String ram_gb = "60"
-    String cpu_cores = "1"
+    String ram_gb = "208"
+    String cpu_cores = "32"
     String preemptible = "0"
     String debug_dump_flag
 
@@ -44,30 +44,30 @@ import subprocess
 def run(cmd):
     print (cmd)
     subprocess.check_call(cmd,shell=True)
-
+#TMP_DIR=.
 run('echo STARTING tar xvf to unpack reference')
 run('date')
 run('tar xvf ${reference_tgz}')
 
 run('echo STARTING SamToFastq')
 run('date')
-run('java -Xmx12G -jar ${picard_path} SamToFastq INPUT=${in_bam} FASTQ=${fq1_fn} SECOND_END_FASTQ=${fq2_fn} VALIDATION_STRINGENCY=LENIENT')
+run('java -Xms190G -jar ${picard_path} SamToFastq  INPUT=${in_bam} FASTQ=${fq1_fn} SECOND_END_FASTQ=${fq2_fn} VALIDATION_STRINGENCY=LENIENT')
 
 run('echo STARTING bwa mem')
 run('date')
-run('bwa mem -t 8 -R ${read_group} ref.fasta ${fq1_fn} ${fq2_fn} | samtools view -bS - > ${aligned_bam_fn}')
+run('bwa mem -t 32 -R ${read_group} ref.fasta ${fq1_fn} ${fq2_fn} | samtools view -bS - > ${aligned_bam_fn}')
 
 run('echo STARTING SortSam')
 run('date')
-run('java -Xmx8G -jar ${picard_path} SortSam I=${aligned_bam_fn} O=${sorted_bam_fn} SO=coordinate')
+run('java -Xms190G -jar ${picard_path} SortSam  I=${aligned_bam_fn} O=${sorted_bam_fn} SO=coordinate')
 
 run('echo STARTING MarkDuplicates')
 run('date')
-run('java -Xmx8G -jar ${picard_path} MarkDuplicates I=${sorted_bam_fn} O=${marked_bam_fn} M=${marked_duplicates_metrics_fn}')
+run('java -Xms190G -jar ${picard_path} MarkDuplicates I=${sorted_bam_fn} O=${marked_bam_fn} M=${marked_duplicates_metrics_fn}')
 
 run('echo STARTING ReorderSam')
 run('date')
-run('java -Xmx8G -jar ${picard_path} ReorderSam I=${marked_bam_fn} O=${out_bam_fn} R=ref.fasta')
+run('java -Xms190G -jar ${picard_path} ReorderSam   I=${marked_bam_fn} O=${out_bam_fn} R=ref.fasta')
 
 run('echo STARTING index')
 run('date')
