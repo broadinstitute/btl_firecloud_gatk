@@ -74,7 +74,10 @@ def run_process_sample(inputs):
             'gatk_tcir.gatk_tcir_task.out_bam_index':'gs://broad-cil-devel-bucket/gatk_tcir/235faed4-cc6b-4d79-a213-843af2f3a58f/call-gatk_tcir_task/Candida_Auris.tcir.bam.bai'
         }
 
-
+    #hack due to tcir fail
+    if False:
+        tcir_outputs['gatk_tcir.gatk_tcir_task.out_bam'] = alignbam_outputs['gatk_alignbam.gatk_alignbam_task.out_bam']
+        tcir_outputs['gatk_tcir.gatk_tcir_task.out_bam_index'] = alignbam_outputs['gatk_alignbam.gatk_alignbam_task.out_bam_index']
 
 
     bqsr_wdl_path = 'btl_gatk_bqsr/taskdef.btl_gatk_bqsr.wdl'
@@ -91,11 +94,17 @@ def run_process_sample(inputs):
     if True:
         bqsr_outputs = check_run_wdl(bqsr_wdl_path, bqsr_inputs)
     else:
-        bqsr_outpus = {
+        bqsr_outputs = {
             'gatk_bqsr.gatk_bqsr_task.out_bam':'gs://broad-cil-devel-bucket/gatk_bqsr/aa98f8e0-7a8e-4df6-9700-d88b1b870875/call-gatk_bqsr_task/Candida_Auris.bqsr.bam',
             'gatk_bqsr.gatk_bqsr_task.out_bam_index':'gs://broad-cil-devel-bucket/gatk_bqsr/aa98f8e0-7a8e-4df6-9700-d88b1b870875/call-gatk_bqsr_task/Candida_Auris.bqsr.bam.bai',
             'gatk_bqsr.gatk_bqsr_task.out_bqsr_table':'gs://broad-cil-devel-bucket/gatk_bqsr/aa98f8e0-7a8e-4df6-9700-d88b1b870875/call-gatk_bqsr_task/Candida_Auris.bqsr.table',
         }
+
+    if False:
+        bqsr_outputs['gatk_bqsr.gatk_bqsr_task.out_bam'] = alignbam_outputs['gatk_alignbam.gatk_alignbam_task.out_bam']
+        bqsr_outputs['gatk_bqsr.gatk_bqsr_task.out_bam_index'] = alignbam_outputs['gatk_alignbam.gatk_alignbam_task.out_bam_index']
+        bqsr_outputs['gatk_bqsr.gatk_bqsr_task.out_bqsr_table'] = None
+
 
     haplotypecaller_wdl_path = 'btl_gatk_haplotypecaller/taskdef.btl_gatk_haplotypecaller.wdl'
     haplotypecaller_inputs = {
