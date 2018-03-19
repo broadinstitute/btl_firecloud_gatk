@@ -19,9 +19,9 @@ def test_verify_valid_comparison_dir(comparison_dir):
     COMPARISON_PATH= comparison_dir + "/ref.fasta.fai"
 
     #expand the .tgz
-    tar_gz = glob.glob(comparison_dir + '*.tgz')[0]
-    tar = tarfile.open(comparison_dir + "/" + tar_gz)
-    tar.extractall()
+    tar_gz = glob.glob(comparison_dir + '/*.tgz')[0]
+    tar = tarfile.open(tar_gz)
+    tar.extractall(path=comparison_dir)
     tar.close()
 
     assert(word_count(GATK_GOAL_PATH) == word_count(COMPARISON_PATH))
