@@ -6,7 +6,7 @@ import subprocess
 def test_verify_valid_comparison_dir(comparison_dir):
 
     def bam_read_count(fname):
-        p = subprocess.Popen(['samtools view -F 0x40', fname, '| cut -f1 | sort | uniq | wc -l'])
+        p = subprocess.Popen(['samtools view -F 0x40', fname, '| cut -f1 | sort | uniq | wc -l'], shell=True)
         #p = subprocess.Popen(['samtools', 'view', '-F', '0x40', fname, '|', 'cut', '-f1', '|', 'sort', '|', 'uniq',
         #                      '|', 'wc', '-l'], stdout=subprocess.PIPE,
         #                                      stderr=subprocess.PIPE)
