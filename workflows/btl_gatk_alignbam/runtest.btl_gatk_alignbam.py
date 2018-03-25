@@ -1,6 +1,6 @@
 from runcromwellremote import run_wdl
 
-wdl = 'taskdef.latecompress.btl_gatk_alignbam.wdl'
+wdl = 'taskdef.btl_gatk_alignbam.wdl'
 
 inputs = {
     'gatk_alignbam.gatk_alignbam_task.reference_tgz':'gs://broad-cil-devel-bucket/gatk_indexref/0e409344-5f52-43dc-b811-4b00f517226c/call-gatk_indexref_task/AgPEST_v4.tgz',
