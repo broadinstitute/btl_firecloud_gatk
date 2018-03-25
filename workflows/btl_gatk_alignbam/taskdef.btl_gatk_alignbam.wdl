@@ -20,7 +20,7 @@ workflow gatk_alignbam {
             debug_dump_flag = debug_dump_flag,
             preemptible = preemptible,
         }
-        done = true
+        done = true  
     }
 
     if ( !done) {
@@ -72,8 +72,6 @@ workflow gatk_alignbam {
 
 }
 
-# TODO break off the portion after BAM-to-fastq
-# todo only bamtofastq requires n1-highmem-32, the others are fine with n1-standard-32 or lower, for 100GB BAM
 
 
 task gatk_alignbam_task {
@@ -205,7 +203,7 @@ task gatk_bamtofastq_task {
 
 
 
-    String output_disk_gb = "500"
+    String output_disk_gb = "375"
     String boot_disk_gb = "10"
     String ram_gb = "208"
     String cpu_cores = "32"
@@ -270,7 +268,7 @@ run('date')
         docker : "gcr.io/btl-dockers/btl_gatk:1"
         memory: "${ram_gb}GB"
         cpu: "${cpu_cores}"
-        disks: "local-disk ${output_disk_gb} HDD"
+        disks: "local-disk ${output_disk_gb} LOCAL"
         bootDiskSizeGb: "${boot_disk_gb}"
         preemptible: "${preemptible}"
     }
@@ -295,7 +293,7 @@ task gatk_bwamem_task {
 
     String read_group = "\\'@RG\\\\\\\\tID:FLOWCELL_${sample_name}\\\\\\\\tSM:${sample_name}\\\\\\\\tPL:ILLUMINA\\\\\\\\tLB:LIB_${sample_name}\\'"
 
-    String output_disk_gb = "500"
+    String output_disk_gb = "375"
     String boot_disk_gb = "10"
     String ram_gb = "360"
     String cpu_cores = "96"
@@ -362,7 +360,7 @@ run('date')
         docker : "gcr.io/btl-dockers/btl_gatk:1"
         memory: "${ram_gb}GB"
         cpu: "${cpu_cores}"
-        disks: "local-disk ${output_disk_gb} HDD"
+        disks: "local-disk ${output_disk_gb} LOCAL"
         bootDiskSizeGb: "${boot_disk_gb}"
         preemptible: "${preemptible}"
     }
@@ -385,7 +383,7 @@ task gatk_sortsam_task {
     String sorted_bam_fn = "${sample_name}.sorted.bam"
 
 
-    String output_disk_gb 
+    String output_disk_gb = "375"
     String boot_disk_gb = "10"
     String ram_gb = "60"
     String cpu_cores = "16"
@@ -449,7 +447,7 @@ run('date')
         docker : "gcr.io/btl-dockers/btl_gatk:1"
         memory: "${ram_gb}GB"
         cpu: "${cpu_cores}"
-        disks: "local-disk ${output_disk_gb} HDD"
+        disks: "local-disk ${output_disk_gb} LOCAL"
         bootDiskSizeGb: "${boot_disk_gb}"
         preemptible: "${preemptible}"
     }
@@ -475,7 +473,7 @@ task gatk_markduplicates_task {
     String marked_bam_fn = "${sample_name}.marked_duplicates.bam"
     String marked_duplicates_metrics_fn = "${sample_name}.marked_duplicates.metrics"
 
-    String output_disk_gb = "500"
+    String output_disk_gb = "375"
     String boot_disk_gb = "10"
     String ram_gb = "208"
     String cpu_cores = "32"
@@ -540,7 +538,7 @@ run('date')
         docker : "gcr.io/btl-dockers/btl_gatk:1"
         memory: "${ram_gb}GB"
         cpu: "${cpu_cores}"
-        disks: "local-disk ${output_disk_gb} HDD"
+        disks: "local-disk ${output_disk_gb} LOCAL"
         bootDiskSizeGb: "${boot_disk_gb}"
         preemptible: "${preemptible}"
     }
@@ -565,7 +563,7 @@ task gatk_reordersam_task {
     String out_bam_index_fn = "${out_bam_fn}.bai"
     File reference_tgz
 
-    String output_disk_gb = "500"
+    String output_disk_gb = "376"
     String boot_disk_gb = "10"
     String ram_gb = "60"
     String cpu_cores = "16"
@@ -637,7 +635,7 @@ run('date')
         docker : "gcr.io/btl-dockers/btl_gatk:1"
         memory: "${ram_gb}GB"
         cpu: "${cpu_cores}"
-        disks: "local-disk ${output_disk_gb} HDD"
+        disks: "local-disk ${output_disk_gb} LOCAL"
         bootDiskSizeGb: "${boot_disk_gb}"
         preemptible: "${preemptible}"
     }
