@@ -6,23 +6,13 @@ workflow gatk_snpeff {
     call gatk_snpeff_task
 }
 
-#TODO: How to handle the database issue: 1) Upload database to bucket location. 2) Pass location to WDL as a param
-#TODO: Reconsider if we really need to pack/unpack the vcf file
-#TODO: Reconsider if we really need to pass in 3 optional vcf parameters or we can just use one.
-#TODO: Need to conditionally unpack tarball for database. Hard to do with CL python since it doesn't take expressions.
-#TODO: Need to conditionally apply -dataDir flag. Hard to do with CL python since it doesn't take expressions.
-#TODO: Would it make sense to upload the custom database to the compute VM itself and define in the config file there
-# a local db store?
-
+#TODO: Currently requires user to provide database which appears to be consistent with most use cases.
 # Based on http://gatkforums.broadinstitute.org/gatk/discussion/50/adding-genomic-annotations-using-snpeff-and-variantannotator
 task gatk_snpeff_task {
-#    File ? vqsr_vcf_tb
-#    File ? genotype_vcf_tb
-#    File ? filtration_vcf_tb
-#    File vcf_in_tb = select_first([filtration_vcf_tb, vqsr_vcf_tb, genotype_vcf_tb])
     File vcf_in
     String snpeff = "/cil/shed/apps/external/snpEff/snpEff-4.1g/snpEff.jar"
-    String ? snpeff_db_tgz
+    File snpeff_db_tgz
+	String snpeff_db_name
     String ? snpeff_extra_params
 
     String cohort_name
@@ -45,35 +35,42 @@ import shutil
 import subprocess
 
 def run(cmd):
-    print (cmd)
-    subprocess.check_call(cmd, shell=True)
+	print (cmd)
+	subprocess.check_call(cmd, shell=True)
 
-#run('echo STARTING tar xvf to unpack vcf')
-#run('date')
-#run('tar xvf ${vcf_in}')
-
-run('tar xvf ${snpeff_db_tgz} -C data/')
-run('sleep 9999999')
-print "Copying Config..."
+run('date')
+print ('Copying snpeff config...')
 run('cp /cil/shed/apps/external/snpEff/snpEff-4.1g/snpEff.config .')
+print('Done copying snpeff config.')
 
-#shutil.copy2('/cil/shed/apps/external/snpEff/snpEff-4.1g/snpEff.config', '.')
-print "Done copying config..."
+run('date')
+print('Making data dir for snpeff db...')
+run('mkdir ./data')
+print('Done making data dir')
 
-print "Running snpeff..."
-run(' \
-    java -Xmx4G -jar ${snpeff} \
-        -formatEff \
-        -no-downstream \
-        -no-intergenic \
-        -no-upstream \
-        -no-utr \
-        ${"-dataDir data/ "} \
-        ${vcf_in} \
-        ${snpeff_extra_params} > ${vcf_out_fn} \
-    ')
+run('date')
+print('Unpacking db archive to data dir...')
+run('tar xvf ${snpeff_db_tgz} -C data/')
+print('Done unpacking db archive.')
 
-print "Done running snpeff."
+cmd = ' \
+		  java -Xmx4G -jar ${snpeff} \
+			  -formatEff \
+			  -no-downstream \
+			  -no-intergenic \
+			  -no-upstream \
+			  -no-utr \
+			  -config snpEff.config \
+			  -dataDir data/ \
+			  ${snpeff_db_name} \
+			  ${vcf_in} \
+			  ${snpeff_extra_params} > ${vcf_out_fn} \
+		  '
+
+run('date')
+print('Running snpeff command...')
+run(cmd)
+print('Done running snpeff command.')
 "
 
         echo "$python_cmd"
