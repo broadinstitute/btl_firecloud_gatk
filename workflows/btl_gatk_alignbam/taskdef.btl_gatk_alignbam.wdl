@@ -11,7 +11,7 @@ workflow gatk_alignbam {
     String debug_dump_flag = "onfail"
     String preemptible = "0"
 
-    if (size(in_bam,"GB")<1) {
+    if (size(in_bam,"GB")<2) {
         call gatk_alignbam_task {
             inputs: 
             unaligned_bam = in_bam,
