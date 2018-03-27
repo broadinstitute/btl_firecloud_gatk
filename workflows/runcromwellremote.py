@@ -12,6 +12,8 @@ import subprocess
 
 #curl -X POST "http://35.193.85.62:8000/api/workflows/v1" -H "accept: application/json" -H "Content-Type: multipart/form-data" -F "workflowSource=@taskdef.btl_gatk_indexref.wdl;type=" -F "workflowInputs=@inputtest.btl_gatk_indexref.json;type=application/json"
 
+#TODO add summary stats output - elapsed time, start time, end time, output bucket root, wdl file name, wdl contents, inputs, outputs, high-water marks from any dstat file
+
 
 global submission_id
 global running
@@ -68,7 +70,7 @@ def get_metadata():
     return metadata
 
 
-def run_wdl(wdl_path, inputs_dict):
+def run_wdl(wdl_path, inputs_dict, workflow_dependencies = None):
     global submission_id
     global running #set to true when we want to purge workflow upon control-C
 
@@ -81,6 +83,9 @@ def run_wdl(wdl_path, inputs_dict):
     files = { 'workflowSource': (os.path.basename(wdl_path),open(wdl_path,'rb'),""),
             'workflowInputs': ('input.json', input_json, "application/json")}
     # TODO add option to disable caching for this submission, via  data fields: {"read_from_cache": false}
+
+    if workflow_dependencies is not None:
+        files['workflowDependencies'] = (os.path.basename(workflow_dependencies),open(workflow_dependencies,'rb'),"")
 
     running = True
     r = requests.post(submit_url, headers=headers, files=files, timeout=10 )
