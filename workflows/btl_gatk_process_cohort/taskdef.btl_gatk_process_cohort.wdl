@@ -16,7 +16,7 @@ workflow gatk_process_cohort {
 
     call btl_gatk_joint_genotype.gatk_joint_genotype_task as gatk_joint_genotype_task{
         input:
-            gvcf_list = gvcf_list,
+            HaplotypeCaller_gvcfs = gvcf_list,
             cohort_name = cohort_name,
             reference_tgz = reference_tgz,
             output_disk_gb = "10",
@@ -26,13 +26,13 @@ workflow gatk_process_cohort {
 
     call btl_gatk_variant_filtration.gatk_variant_filtration_task as gatk_variant_filtration_task{
         input:
-            sv_vcf = gatk_joint_genotype_task.vcf_out 
+            sv_vcf = gatk_joint_genotype_task.vcf_out, 
             cohort_name = cohort_name,
             reference_tgz = reference_tgz,
             output_disk_gb = "10",
             debug_dump_flag = "onfail",
-            snp_filter_expression':"VQSLOD <= 0.0",
-            indel_filter_expression':"VQSLOD <= 0.0",
+            snp_filter_expression = "VQSLOD <= 0.0",
+            indel_filter_expression = "VQSLOD <= 0.0",
 
     }
 

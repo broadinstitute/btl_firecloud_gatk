@@ -4,7 +4,7 @@ import "taskdef.btl_gatk_bqsr.wdl" as btl_gatk_bqsr
 import "taskdef.btl_gatk_haplotypecaller.wdl" as btl_gatk_haplotypecaller
 
 
-workflow gatk_process_sample_full {
+workflow gatk_process_sample {
     String? onprem_download_path
     Map[String, String]? handoff_files
 
