@@ -16,8 +16,8 @@ def test_verify_valid_comparison_dir(comparison_dir):
 
         return int(result.strip().split()[0])
 
-    GATK_GOAL_PATH = "/cil/shed/resources/wdl/gatk/alignbam/output/CandidaAuris.bam"
-    COMPARISON_PATH= comparison_dir + "/CandidaAuris.bam"
+    GATK_GOAL_PATH = "/cil/shed/resources/wdl/gatk/snpeff/output/CandidaAurisCohort.snpeff.vcf"
+    COMPARISON_PATH= comparison_dir + "/CandidaAurisCohort.snpeff.vcf"
 
     tar_gz = glob.glob(comparison_dir + '/*.tgz')[0]
     tar = tarfile.open(tar_gz)
