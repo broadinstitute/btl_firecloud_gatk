@@ -13,7 +13,7 @@ def test_verify_valid_comparison_dir(comparison_dir):
             lines = lines + line
 
         return int(lines.strip().split()[0])
-    
+
     GATK_GOAL_PATH = "/cil/shed/resources/wdl/gatk/bqsr/output/CandidaAuris.bqsr.bam"
     COMPARISON_PATH= comparison_dir + "/CandidaAuris.bqsr.bam"
 

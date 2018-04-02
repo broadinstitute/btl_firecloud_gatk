@@ -76,7 +76,7 @@ print('Done running snpeff command.')
         echo "$python_cmd"
         set +e
         python -c "$python_cmd"
-        export _exit_code=$?
+        export exit_code=$?
         set -e
         echo exit code is $exit_code
         ls
@@ -93,7 +93,8 @@ print('Done running snpeff command.')
         fi
 
             /opt/src/algutil/monitor_stop.py
-        # exit statement must be the last line in the command block
+
+		# exit statement must be the last line in the command block
         exit $exit_code
 
     }

@@ -15,7 +15,7 @@ def test_verify_valid_comparison_dir(comparison_dir):
 
         return int(result.strip().split()[0])
 
-    GATK_GOAL_PATH = "/cil/shed/resources/wdl/gatk/variant_filtration/output/CandidaAurisCohort.variant.filtered.vcf"
-    COMPARISON_PATH= comparison_dir + "/CandidaAurisCohort.variant.filtered.vcf"
+    GATK_GOAL_PATH = "/cil/shed/resources/wdl/gatk/process_sample/output/Candida_Auris.gvcf"
+    COMPARISON_PATH= comparison_dir + "/Candida_Auris.gvcf"
 
     assert(word_count(GATK_GOAL_PATH) == word_count(COMPARISON_PATH))
