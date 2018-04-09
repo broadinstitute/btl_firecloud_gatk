@@ -1,0 +1,8 @@
+{
+  "gatk_filter_genotypes.gatk_filter_genotypes_task.debug_dump_flag": "String",
+  "gatk_filter_genotypes.handoff_files": "(optional) Map[String, String]?",
+  "gatk_filter_genotypes.gatk_filter_genotypes_task.output_disk_gb": "String",
+  "gatk_filter_genotypes.gatk_filter_genotypes_task.cohort_name": "String",
+  "gatk_filter_genotypes.gatk_filter_genotypes_task.vcf_in": "File",
+  "gatk_filter_genotypes.onprem_download_path": "(optional) String?"
+}

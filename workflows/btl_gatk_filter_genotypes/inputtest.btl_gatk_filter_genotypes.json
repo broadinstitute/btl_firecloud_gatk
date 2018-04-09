@@ -1,0 +1,8 @@
+{
+  "gatk_filter_genotypes.gatk_filter_genotypes_task.debug_dump_flag": "onfail",
+  "gatk_filter_genotypes.handoff_files": {"gatk_filter_genotypes.gatk_filter_genotypes_task.": ""},
+  "gatk_filter_genotypes.gatk_filter_genotypes_task.output_disk_gb": "10",
+  "gatk_filter_genotypes.gatk_filter_genotypes_task.cohort_name": "CandidaAurisCohort",
+  "gatk_filter_genotypes.gatk_filter_genotypes_task.vcf_in": "/cil/shed/resources/wdl/gatk/filter_genotypes/input/CandidaAurisCohort.ALL.filtered.vcf",
+  "gatk_filter_genotypes.onprem_download_path": "/cil/shed/resources/wdl/gatk/filter_genotypes/output"
+}
