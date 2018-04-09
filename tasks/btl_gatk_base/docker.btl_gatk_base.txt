@@ -35,8 +35,7 @@ RUN Rscript -e "install.packages(c('ggplot2','gplots','reshape','gsalib'), repos
 RUN apt-get install -y samtools bwa
 
 RUN apt-get update && apt-get install -y python-pip
-RUN pip install numpy
-RUN pip install biopython
+RUN pip install numpy scipy biopython
 
 #copy contents of tasks/<taskname>/build/src on the build host into /opt/src on the docker
 COPY src/ /opt/src/
