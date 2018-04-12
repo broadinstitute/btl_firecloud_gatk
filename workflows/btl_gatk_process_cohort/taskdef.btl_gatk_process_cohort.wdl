@@ -8,8 +8,9 @@ workflow gatk_process_cohort {
     String? onprem_download_path
     Map[String, String]? handoff_files
 
-
-    Array[File] gvcf_list
+    File gvcf_fofn
+    # I've made gvcf_list 'optional' just so widdler validate doesn't complain when it isn't in json file. 
+    Array[File] ? gvcf_list = read_lines(gvcf_fofn)
     String cohort_name
     File reference_tgz
     File snpeff_db_tgz
@@ -47,7 +48,7 @@ workflow gatk_process_cohort {
         }
     }
     File snpeff_vcf_in = select_first([gatk_filter_genotypes_task.vcf_out, gatk_variant_filtration_task.vcf_out])
-    call btl_taskdef.btl_gatk_snpeff.gatk_snpeff_task as gatk_snpeff_task {
+    call btl_gatk_snpeff.gatk_snpeff_task as gatk_snpeff_task {
         input:
             vcf_in = snpeff_vcf_in,
             snpeff_db_tgz = snpeff_db_tgz,
@@ -57,7 +58,6 @@ workflow gatk_process_cohort {
     output {
         File out_vcf = gatk_variant_filtration_task.vcf_out
         }
-
 }
 
 
