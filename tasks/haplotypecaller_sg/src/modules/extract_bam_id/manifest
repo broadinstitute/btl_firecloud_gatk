@@ -1,0 +1,35 @@
+# Written by Hydrant
+# 2013-04-04 14:58:39
+
+name=ExtractBamHeader
+description=extracts header from a bam file
+commandLine=sh <libdir>samtools.sh <libdir> <bam.file>
+fileFormat=header.txt
+
+p1_name=bam.file
+p1_description=bam file
+p1_default_value=
+p1_fileFormat=
+p1_optional=
+p1_prefix_when_specified=
+p1_MODE=IN
+p1_TYPE=FILE
+p1_type=java.io.File
+p1_value=
+
+cpuType=any
+JVMLevel=1.6
+os=any
+pipelineModel=
+privacy=
+publicationDate=04/04/2013 14:58
+quality=
+requiredPatchLSIDs=
+requiredPatchURLs=
+serializedModel=
+taskType=
+userid=
+LSID=urn:lsid:broadinstitute.org:cancer.genome.analysis:00411:6
+executor=LSF
+default.memory.gigabytes=1
+author=plin

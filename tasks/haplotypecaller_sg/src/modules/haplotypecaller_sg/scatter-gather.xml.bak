@@ -1,0 +1,6 @@
+<scatter-gather lsf-project="Firehose">
+    <prepare exe="bash export JAVA_HOME=/opt/java8/jdk1.8.0_31; ${libdir}/prepare.sh" memory="2"/>
+    <scatter exe="bash ${libdir}/run_gatk_haplotypecaller.sh" memory="4"/>
+    <gather exe="bash ${libdir}/gather.sh" memory="2"/>
+</scatter-gather>
+

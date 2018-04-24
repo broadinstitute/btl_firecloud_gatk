@@ -1,0 +1,22 @@
+[task]
+type = standard
+command = sh <libdir>samtools.sh <libdir> ${file bam.file}
+version: 0.0.2
+name = ExtractBamHeader
+project = None
+projectDirs = .
+build = None
+buildDir = .
+execDir = .
+installTarget = firehose
+description = extracts header from a bam file
+fileFormats = header.txt
+
+[runtime]
+executor = LSF
+max_memory = 1
+fail_on_stderr = true
+
+[bam.file]
+description = bam file
+value =

@@ -1,0 +1,5 @@
+{
+    "haplotypecaller_sg_workflow.haplotypecaller_sg.salutation_input_string": "hello",
+    "haplotypecaller_sg_workflow.haplotypecaller_sg.name_input_file": "https://personal.broadinstitute.org/gsaksena/world.txt",
+    "haplotypecaller_sg_workflow.haplotypecaller_sg.output_disk_gb": "10"
+}

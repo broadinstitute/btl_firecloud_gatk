@@ -1,0 +1,16 @@
+FROM ubuntu:16.04
+RUN apt-get update && apt-get install -y python sudo dstat
+
+# Install Java 1.8
+RUN apt-get update && apt-get install -y software-properties-common
+
+RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | sudo /usr/bin/debconf-set-selections  \
+&&  add-apt-repository ppa:webupd8team/java \
+&&  apt-get update \
+&&  apt-get install -y oracle-java8-installer \
+&&  apt-get install -y oracle-java8-set-default
+
+#copy contents of tasks/<taskname>/build/src on the build host into /opt/src on the docker
+COPY src/ /opt/src/
+
+WORKDIR /opt/src
