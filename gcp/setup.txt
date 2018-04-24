@@ -1,0 +1,64 @@
+create new projects using the console
+gcid-public-dockers
+gcid-cromwell
+under billing account 5035427, under btl folder
+create buckets under gcid-cromwell in console.  multiregional, US location
+
+
+4b66fc8a - used for reference files
+4b66fc8a-tmp - used for cromwell output.  auto delete 60 days after creation.
+
+enable gcr api in gcid-public-dockers (url to console given in the
+error message)
+edit wdl to point to new docker project, push image there
+set the docker images to public:
+gsutil iam ch allUsers:objectViewer gs://<docker bucket name>
+
+[what does it mean that some images are mounted from the old bucket,
+during the push?]
+
+create new node:
+add installaton to startup script - install java, install cromwell,
+create config file, launch cromwell.
+
+us-central1-a (near where jobs are launched by default, larger data center)
+n1-highmem-2
+broadwell or later
+ubuntu 16.04
+allow https traffic
+external ip - reserve under cromwell-node name
+
+add stuff to bucket:
+gs://4b66fc8a/startup/cromwell-acct.json - from creating service account
+gs://4b66fc8a/startup/application.conf
+
+edit vpc network details - firewall - allow 69.173.64.0/18 access to
+8000 and 80. http-serve tag. (should there be an oauth2 proxy
+instead?)
+
+http://35.184.36.201:8000
+
+
+try running something, then look at error message to see how to enable
+google genomics api
+
+
+give permissions for both buckets to the service account - storage
+object admin, based on the number-containing account name given in the
+error message.
+
+gcid-cromwell-account@... compute instance admin (beta), service
+account user, genomics pipeline runner. also give bucket admin access
+to the bucket.
+
+service-820766005436@genomics-api.google.com.iam... -> give bucket
+admin access to the bucket.
+
+--
+jenkins
+ansible
+email for daily usage, per project
+lets_encrypt - api for getting cert for single use, free
+data dog - health monitor, to see when something went wrong in the past
+proxy server for oath2, to minimize point of contact
+
