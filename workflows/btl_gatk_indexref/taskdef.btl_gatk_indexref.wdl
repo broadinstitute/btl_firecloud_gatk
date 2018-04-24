@@ -75,7 +75,7 @@ run('gzip -c --best ${ref_name}.tar > ${ref_name}.tgz')
         File debug_bundle="debug_bundle.tar.gz"
 
     } runtime {
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
         memory: "${ram_gb}GB"
         cpu: "${cpu_cores}"
         disks: "local-disk ${output_disk_gb} HDD"
