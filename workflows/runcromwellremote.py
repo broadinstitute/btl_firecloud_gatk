@@ -129,7 +129,7 @@ def run_wdl(wdl_path, inputs_dict, workflow_dependencies = None):
 
     #{'id': '4824df01-ee6b-46c9-ab1d-bd9e3bd12f9d', 'status': 'Failed'}
 
-        print(r.status_code, r.text, timeElapsed)
+        print("%s  %s  %s"%(r.status_code, r.text, timeElapsed))
         status_dict = json.loads(r.text)
         workflow_status = status_dict['status']
 
