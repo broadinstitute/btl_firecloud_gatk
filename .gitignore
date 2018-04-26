@@ -4,3 +4,12 @@
 **/cromwell-workflow-logs
 **/cromwell-executions
 **/build
+/workflows/btl_gatk_process_cohort/taskdef.btl_gatk_vqsr.wdl
+/workflows/btl_gatk_process_cohort/taskdef.btl_gatk_variant_filtration.wdl
+/workflows/btl_gatk_process_cohort/taskdef.btl_gatk_snpeff.wdl
+/workflows/btl_gatk_process_cohort/taskdef.btl_gatk_tcir.wdl
+/workflows/btl_gatk_process_cohort/taskdef.btl_gatk_alignbam.wdl
+/workflows/btl_gatk_process_cohort/taskdef.btl_gatk_bqsr.wdl
+/workflows/btl_gatk_process_cohort/taskdef.btl_gatk_haplotypecaller.wdl
+/workflows/btl_gatk_process_cohort/taskdef.btl_gatk_joint_genotype.wdl
+/workflows/btl_gatk_process_cohort/taskdef.btl_gatk_filter_genotypes.wdl
