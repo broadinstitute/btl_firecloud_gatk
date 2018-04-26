@@ -12,7 +12,6 @@ task gatk_vqsr_task {
     File reference_tgz
 
     File genotype_caller_vcf
-    #TODO make sure these array args are working
 
     Array[String] snp_annotation
     Array[String] indel_annotation
@@ -32,14 +31,12 @@ task gatk_vqsr_task {
     String cohort_name
     String vcf_out_fn = "${cohort_name}.vqsr.vcf"
 
-
-    String output_disk_gb 
+	String debug_dump_flag
+    String output_disk_gb = "100"
     String boot_disk_gb = "10"
     String ram_gb = "10"
     String cpu_cores = "1"
     String preemptible = "0"
-    String debug_dump_flag
-
     command {
         set -euo pipefail
         ln -sT `pwd` /opt/execution
@@ -65,10 +62,10 @@ run('tar xvf ${reference_tgz}')
 snp_resource_args = ''
 indel_resource_args = ''
 for known_sites_vcf, known_sites_vcf_tbi, snp_resource, indel_resource in zip(
-    ['${sep="', '"   known_sites_vcfs }'], 
+    ['${sep="', '"   known_sites_vcfs }'],
     ['${sep="', '"   known_sites_vcf_tbis}'],
-    ['${sep="', '"   snp_resource_params }'], 
-    ['${sep="', '"   indel_resource_params}']    
+    ['${sep="', '"   snp_resource_params }'],
+    ['${sep="', '"   indel_resource_params}']
     ):
 
     vcf_dir = os.path.dirname(known_sites_vcf)
@@ -78,7 +75,6 @@ for known_sites_vcf, known_sites_vcf_tbi, snp_resource, indel_resource in zip(
         print('about to: ln %s %s'%(tbi_symlink, known_sites_vcf_tbi))
         os.link(tbi_symlink, known_sites_vcf_tbi)
 
-# -resource:3d7_hb3,known=false,training=true,truth=true,prior=15.0 /gsap/garage-protistvector/U19_Aim4/Pf3K/3d7_hb3.combined.final.vcf.gz   
     snp_resource_args += '-resource:%s %s '%(snp_resource, known_sites_vcf)
     indel_resource_args += '-resource:%s %s '%(indel_resource, known_sites_vcf)
 
@@ -86,7 +82,6 @@ for known_sites_vcf, known_sites_vcf_tbi, snp_resource, indel_resource in zip(
 run('echo STARTING VariantRecalibrator-SNP')
 run('date')
 
-#            -rscriptFile snp.plots.R \
 run('\
         java -Xmx8G -jar ${gatk_path} \
             -T VariantRecalibrator \
@@ -121,7 +116,6 @@ run('java -Xmx8G -jar ${gatk_path} \
 run('echo STARTING VariantRecalibrator-INDEL')
 run('date')
 
-#            -rscriptFile indel.plots.R \
 run('\
         java -Xmx8G -jar ${gatk_path} \
             -T VariantRecalibrator \
@@ -172,14 +166,13 @@ run('date')
             tar cfz debug_bundle.tar.gz --exclude=debug_bundle.tar.gz .
         else
             touch debug_bundle.tar.gz
-        fi     
+        fi
         /opt/src/algutil/monitor_stop.py
 
-        # exit statement must be the last line in the command block 
+        # exit statement must be the last line in the command block
         exit $exit_code
 
-    }
-    output {
+    } output {
         File vcf_out = "${vcf_out_fn}"
 
         File monitor_start="monitor_start.log"
