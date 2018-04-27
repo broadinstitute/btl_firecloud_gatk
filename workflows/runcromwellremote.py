@@ -18,7 +18,8 @@ import subprocess
 global submission_id
 global running
 running = False
-base_url = 'http://35.193.85.62:8000'
+#base_url = 'http://35.193.85.62:8000' #btl-cil-devel
+base_url = 'http://35.184.36.201:8000' #gcid-cromwell
 
 
 def killjob():
@@ -128,7 +129,7 @@ def run_wdl(wdl_path, inputs_dict, workflow_dependencies = None):
 
     #{'id': '4824df01-ee6b-46c9-ab1d-bd9e3bd12f9d', 'status': 'Failed'}
 
-        print(r.status_code, r.text, timeElapsed)
+        print("%s  %s  %s"%(r.status_code, r.text, timeElapsed))
         status_dict = json.loads(r.text)
         workflow_status = status_dict['status']
 

@@ -17,7 +17,7 @@ task VersionCheck {
 
     } runtime {
         task_name: "VersionCheck"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
 
     }
 } 
@@ -61,7 +61,7 @@ task VersionCheck {
 #        File dstat="dstat.log"
 #    } runtime {
 #        task_name: "CheckIndex"
-#        docker : "gcr.io/btl-dockers/btl_gatk:1"
+#        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
 #
 #    }
 #    parameter_meta {
@@ -126,7 +126,7 @@ task IndexReference {
         File dstat="dstat.log"
     } runtime {
         task_name: "IndexReference"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
         
     }
     parameter_meta {
@@ -172,7 +172,7 @@ task CreateIntervalsList {
         File dstat="dstat.log"
     } runtime {
         task_name: "CreateIntervalList"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
 
     }
     parameter_meta {
@@ -209,7 +209,7 @@ task CreateIntervalsList {
 #        File dstat="dstat.log"
 #    } runtime {
 #        task_name: "GenerateFastqNames"
-#        docker : "gcr.io/btl-dockers/btl_gatk:1"
+#        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
 #
 #    }
 #    parameter_meta {
@@ -239,7 +239,7 @@ task SamToFastq {
         File dstat="dstat.log"
     } runtime {
         task_name: "SamToFastq"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
     }
     parameter_meta {
         picard: "The absolute path to the picard jar to execute."
@@ -300,7 +300,7 @@ task AlignBAM {
         File dstat="dstat.log"
     } runtime {
         task_name: "AlignBAM"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
     }
     parameter_meta {
         ref: "fasta file of reference genome"
@@ -330,7 +330,7 @@ task SortBAM {
         File dstat="dstat.log"
     } runtime {
         task_name: "SortBAM"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
     }
     parameter_meta {
         picard: "The absolute path to the picard jar to execute."
@@ -358,7 +358,7 @@ task MarkDuplicates {
         File dstat="dstat.log"
     } runtime {
         task_name: "MarkDuplicates"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
     }
     parameter_meta {
         picard: "The absolute path to the picard jar to execute."
@@ -392,7 +392,7 @@ task ReorderBAM {
         File dstat="dstat.log"
     } runtime {
         task_name: "ReorderBAM"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
     }
     parameter_meta {
         picard: "The absolute path to the picard jar to execute."
@@ -422,7 +422,7 @@ task IndexBAM {
     
     runtime {
         task_name: "IndexBAM"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
     }
     parameter_meta {
         in_bam: "the reordered bam file to be indexed."
@@ -457,7 +457,7 @@ task RealignerTargetCreator {
         File dstat="dstat.log"
     } runtime {
         task_name: "RealignerTargetCreator"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
     }
     parameter_meta {
         gatk: "The absolute path to the gatk executable jar."
@@ -500,7 +500,7 @@ task IndelRealigner {
         File dstat="dstat.log"
     } runtime {
         task_name: "IndelRealigner"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
     }
     parameter_meta {
         gatk: "The absolute path to the gatk executable jar."
@@ -529,7 +529,7 @@ task IndelRealigner {
 #        File dstat="dstat.log"
 #    } runtime {
 #        task_name: "CreateBamList"
-#        docker : "gcr.io/btl-dockers/btl_gatk:1"
+#        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
 #    }
 #    parameter_meta {
 #        samples_file: "The text file containing sample names and bam file paths."
@@ -567,7 +567,7 @@ task BaseRecalibrator {
         File dstat="dstat.log"
     } runtime {
         task_name: "BaseRecalibrator"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
     }
     parameter_meta {
         gatk: "The absolute path to the gatk executable jar."
@@ -612,7 +612,7 @@ task AnalyzeCovariates {
         File dstat="dstat.log"
     } runtime {
         task_name: "AnalyzeCovariates"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
     }
     parameter_meta {
         gatk: "The absolute path to the gatk executable jar."
@@ -657,7 +657,7 @@ task PrintReads {
         File dstat="dstat.log"
     } runtime {
         task_name: "PrintReads"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
     }
     parameter_meta {
         gatk: "The absolute path to the gatk executable jar."
@@ -717,7 +717,7 @@ task HaplotypeCaller {
         File dstat="dstat.log"
     } runtime {
         task_name: "HaplotypeCaller"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
     }
 	parameter_meta {
 		gatk: "Executable jar for the GenomeAnalysisTK"
@@ -771,7 +771,7 @@ task GenotypeGVCFs {
         File dstat="dstat.log"
     } runtime {
         task_name: "GenotypeGVCFs"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
     }
 	parameter_meta {
 		gatk: "Executable jar for the GenomeAnalysisTK"
@@ -841,7 +841,7 @@ task VariantRecalibrator {
         File dstat="dstat.log"
     } runtime {
         task_name: "VariantRecalibrator"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
     }
 	parameter_meta {
 		gatk: "Executable jar for the GenomeAnalysisTK"
@@ -900,7 +900,7 @@ task ApplyRecalibration {
         File dstat="dstat.log"
     } runtime {
         task_name: "ApplyRecalibration"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
     }
     parameter_meta {
 		gatk: "Executable jar for the GenomeAnalysisTK"
@@ -946,7 +946,7 @@ task SelectVariants {
         File dstat="dstat.log"
     } runtime {
         task_name: "SelectVariants"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
     }
     parameter_meta {
         gatk: "Executable jar for the GenomeAnalysisTK"
@@ -991,7 +991,7 @@ task HardFiltration {
         File dstat="dstat.log"
     } runtime {
         task_name: "HardFiltration"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
     }
     parameter_meta {
         gatk: "Executable jar for the GenomeAnalysisTK"
@@ -1029,7 +1029,7 @@ task CombineVariants {
 
     } runtime {
         task_name: "CombineVariants"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
     }
     output {
         File out = outfile
@@ -1057,7 +1057,7 @@ task SnpEff {
     }
     runtime {
         task_name: "CombineVariants"
-        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        docker : "gcr.io/gcid-public-dockers/btl_gatk:1"
     }
     output {
         File out = vcf_out

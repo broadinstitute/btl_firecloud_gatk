@@ -1,6 +1,6 @@
 {
   "gatk_indexref.IndexReference.ref_name": "minion_illumina_hybrid_clean_MT",
   "gatk_indexref.IndexReference.output_disk_gb": "10",
-  "gatk_indexref.IndexReference.ref_fasta": "gs://broad-cil-devel-bucket/input_data/minion_illumina_hybrid_clean_MT.fasta",
+  "gatk_indexref.IndexReference.ref_fasta": "gs://4b66fc8a/test_data/minion_illumina_hybrid_clean_MT.fasta",
   "gatk_indexref.IndexReference.debug_dump_flag": "onfail"
 }
