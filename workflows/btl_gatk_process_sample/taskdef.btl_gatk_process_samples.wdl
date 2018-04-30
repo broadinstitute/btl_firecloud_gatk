@@ -6,22 +6,17 @@ import "taskdef.btl_gatk_haplotypecaller.wdl" as btl_gatk_haplotypecaller
 
 workflow gatk_process_samples {
     String? onprem_download_path
-    Map[String, File] sample_entries
-    Map[String, File] sample_index = {"":""}
+    File samples_tsv_file
+
     Boolean prealigned = false
 
     File reference_tgz
     Array[File] known_sites_vcfs
     Array[File] known_sites_vcf_tbis
 
-    scatter (sample_entry in sample_entries) {
-        File bam_entry = sample_entry.right
-        String sample_name = sample_entry.left
-
-        if (prealigned) {
-            File prealigned_bam_idx = sample_index[sample_name]
-            File prealigned_bam = bam_entry
-        }
+    scatter (sample_entry in read_tsv(samples_tsv_file)) {
+        File bam_entry = sample_entry[1]
+        String sample_name = sample_entry[0]
 
         if (!prealigned) {
             call btl_gatk_alignbam.gatk_alignbam_task as gatk_alignbam_task{
