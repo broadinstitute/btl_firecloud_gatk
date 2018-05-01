@@ -6,7 +6,7 @@ import "taskdef.btl_gatk_haplotypecaller.wdl" as btl_gatk_haplotypecaller
 
 workflow gatk_process_samples {
     String? onprem_download_path
-    File samples_tsv_file
+    File samples_tsv_fofn
 
     Boolean prealigned = false
 
@@ -14,7 +14,7 @@ workflow gatk_process_samples {
     Array[File] known_sites_vcfs
     Array[File] known_sites_vcf_tbis
 
-    scatter (sample_entry in read_tsv(samples_tsv_file)) {
+    scatter (sample_entry in read_tsv(samples_tsv_fofn)) {
         File bam_entry = sample_entry[1]
         String sample_name = sample_entry[0]
 
