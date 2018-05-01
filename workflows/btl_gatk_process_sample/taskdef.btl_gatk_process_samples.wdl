@@ -18,6 +18,11 @@ workflow gatk_process_samples {
         File bam_entry = sample_entry[1]
         String sample_name = sample_entry[0]
 
+        if (prealigned) {
+            File prealigned_bam_idx = sample_entry[2]
+            File prealigned_bam = bam_entry
+        }
+        
         if (!prealigned) {
             call btl_gatk_alignbam.gatk_alignbam_task as gatk_alignbam_task{
                 input:
