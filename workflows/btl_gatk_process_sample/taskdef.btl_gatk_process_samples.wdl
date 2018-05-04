@@ -1,3 +1,4 @@
+import "taskdef.btl_gatk_indexref.wdl" as btl_gatk_indexref
 import "taskdef.btl_gatk_alignbam.wdl" as btl_gatk_alignbam
 import "taskdef.btl_gatk_tcir.wdl" as btl_gatk_tcir
 import "taskdef.btl_gatk_bqsr.wdl" as btl_gatk_bqsr
@@ -10,9 +11,21 @@ workflow gatk_process_samples {
 
     Boolean prealigned = false
 
-    File reference_tgz
+    File reference_fasta
     Array[File] known_sites_vcfs
     Array[File] known_sites_vcf_tbis
+    String ref_base_name = base_name(reference_fasta)
+    String ref_name = sub(ref_base_name, ".f[asta]", "")
+
+
+    call btl_gatk_indexref.gatk_indexref_task as gatk_indexref_task {
+        input:
+            ref_fasta = reference_fasta,
+            ref_name = ref_name,
+            output_disk_gb = "10",
+            debug_dump_flag = "onfail"
+    }
+
 
     scatter (sample_entry in read_tsv(samples_tsv_fofn)) {
         File bam_entry = sample_entry[1]
@@ -28,7 +41,7 @@ workflow gatk_process_samples {
                 input:
                     in_bam = bam_entry,
                     sample_name = sample_name,
-                    reference_tgz = reference_tgz,
+                    reference_tgz = gatk_indexref_task.reference_tgz,
                     output_disk_gb = "10",
                     debug_dump_flag = "onfail",
             }
@@ -42,7 +55,7 @@ workflow gatk_process_samples {
                 in_bam = in_bam,
                 in_bam_index = in_bam_index,
                 sample_name = sample_name,
-                reference_tgz = reference_tgz,
+                reference_tgz = gatk_indexref_task.reference_tgz,
                 output_disk_gb = "10",
                 debug_dump_flag = "onfail",
         }
@@ -54,7 +67,7 @@ workflow gatk_process_samples {
                 known_sites_vcfs = known_sites_vcfs,
                 known_sites_vcf_tbis = known_sites_vcf_tbis,
                 sample_name = sample_name,
-                reference_tgz = reference_tgz,
+                reference_tgz = gatk_indexref_task.reference_tgz,
                 output_disk_gb = "10",
                 debug_dump_flag = "onfail",
 	    }
@@ -65,7 +78,7 @@ workflow gatk_process_samples {
                 in_bam_index = gatk_bqsr_task.out_bam_index,
                 bqsr_table = gatk_bqsr_task.out_bqsr_table,
                 sample_name = sample_name,
-                reference_tgz = reference_tgz,
+                reference_tgz = gatk_indexref_task.reference_tgz,
                 output_disk_gb = "10",
                 debug_dump_flag = "onfail",
 	    }
