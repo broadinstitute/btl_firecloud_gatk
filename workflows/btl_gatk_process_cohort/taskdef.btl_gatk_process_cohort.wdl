@@ -12,14 +12,10 @@ workflow gatk_process_cohort {
     # I've made gvcf_list 'optional' just so widdler validate doesn't complain when it isn't in json file, since
     # this is extrapolated from the fofn.
     Array[File] gvcf_list = read_lines(gvcf_fofn)
-    #Array[File] gvcf_list = ["gs://broad-cil-devel-bucket/broad-file-inputs/G:/Candida_Auris.gvcf"]
     String cohort_name
     File reference_tgz
     File snpeff_db_tgz
     String snpeff_db_name
-
-    # VQSR Parameters. All are optional since VQSR is optional. I would like to make these optional but Cromwell doesn't
-    # allow it. See https://gatkforums.broadinstitute.org/wdl/discussion/10092/no-coercion-defined-from-file-path-of-type-file-to-file.
 
     Array[String] snp_annotation
     Array[String] indel_annotation
