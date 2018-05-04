@@ -58,7 +58,7 @@ workflow gatk_process_samples {
                 sample_name = sample_name,
                 reference_tgz = gatk_indexref_task.reference_tgz,
                 output_disk_gb = "10",
-                debug_dump_flag = "onfail",
+                debug_dump_flag = "onfail"
         }
 
         call btl_gatk_bqsr.gatk_bqsr_task as gatk_bqsr_task{
@@ -70,7 +70,7 @@ workflow gatk_process_samples {
                 sample_name = sample_name,
                 reference_tgz = gatk_indexref_task.reference_tgz,
                 output_disk_gb = "10",
-                debug_dump_flag = "onfail",
+                debug_dump_flag = "onfail"
 	    }
 
         call btl_gatk_haplotypecaller.gatk_haplotypecaller_task as gatk_haplotypecaller_task {
@@ -81,7 +81,7 @@ workflow gatk_process_samples {
                 sample_name = sample_name,
                 reference_tgz = gatk_indexref_task.reference_tgz,
                 output_disk_gb = "10",
-                debug_dump_flag = "onfail",
+                debug_dump_flag = "onfail"
 	    }
 
 
