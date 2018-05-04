@@ -1,8 +1,8 @@
-import "taskdef.btl_gatk_indexref.wdl" as btl_gatk_indexref
 import "taskdef.btl_gatk_alignbam.wdl" as btl_gatk_alignbam
 import "taskdef.btl_gatk_tcir.wdl" as btl_gatk_tcir
 import "taskdef.btl_gatk_bqsr.wdl" as btl_gatk_bqsr
 import "taskdef.btl_gatk_haplotypecaller.wdl" as btl_gatk_haplotypecaller
+import "taskdef.btl_gatk_indexref.wdl" as btl_gatk_indexref
 
 
 workflow gatk_process_samples {
@@ -14,7 +14,7 @@ workflow gatk_process_samples {
     File reference_fasta
     Array[File] known_sites_vcfs
     Array[File] known_sites_vcf_tbis
-    String ref_base_name = base_name(reference_fasta)
+    String ref_base_name = basename(reference_fasta)
     # This regex should cover all three species of fasta files seen in the wild: .fasta, .fa, and .fna. Tested at regex101.com
     String ref_name = sub(ref_base_name, ".f[nasta]", "")
 
@@ -44,7 +44,7 @@ workflow gatk_process_samples {
                     sample_name = sample_name,
                     reference_tgz = gatk_indexref_task.reference_tgz,
                     output_disk_gb = "10",
-                    debug_dump_flag = "onfail",
+                    debug_dump_flag = "onfail"
             }
         }
 
