@@ -38,8 +38,6 @@ workflow gatk_process_cohort {
     call btl_gatk_joint_genotype.gatk_joint_genotype_task as gatk_joint_genotype_task{
         input:
             HaplotypeCaller_gvcfs = gvcf_list,
-            # Passing this directly the workflow works.
-            # HaplotypeCaller_gvcfs = "gs://broad-cil-devel-bucket/broad-file-inputs/G:/Candida_Auris.gvcf"
             cohort_name = cohort_name,
             reference_tgz = reference_tgz,
             output_disk_gb = "10",
