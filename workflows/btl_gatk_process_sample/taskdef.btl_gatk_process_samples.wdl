@@ -66,8 +66,8 @@ workflow gatk_process_samples {
         }
 
         # note the conditional possibility (that tcir runs) has to be first option in select_first or it will never be assigned to bqsr_in_bam.
-        File in_bam_two = select_first(gatk_tcir_task.out_bam, in_bam)
-        File in_bam_two_index = select_first(gatk_tcir_task.out_bam_index, in_bam_index)
+        File in_bam_two = select_first([gatk_tcir_task.out_bam, in_bam])
+        File in_bam_two_index = select_first([gatk_tcir_task.out_bam_index, in_bam_index])
 
         if (use_bqsr) {
             call btl_gatk_bqsr.gatk_bqsr_task as gatk_bqsr_task{
@@ -83,8 +83,8 @@ workflow gatk_process_samples {
             }
         }
 
-        File hc_in_bam = select_first(gatk_bqsr_task.out_bam, in_bam_two)
-        File hc_in_bam_index = select_first(gatk_bqsr_task.out_bam_index, in_bam_two_index)
+        File hc_in_bam = select_first([gatk_bqsr_task.out_bam, in_bam_two])
+        File hc_in_bam_index = select_first([gatk_bqsr_task.out_bam_index, in_bam_two_index])
         call btl_gatk_haplotypecaller.gatk_haplotypecaller_task as gatk_haplotypecaller_task {
 	        input:
                 in_bam = hc_in_bam,
