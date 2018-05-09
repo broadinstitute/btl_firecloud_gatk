@@ -14,8 +14,8 @@ workflow gatk_process_samples {
     Boolean use_bqsr
 
     File reference_fasta
-    Array[File] ? known_sites_vcfs
-    Array[File] ? known_sites_vcf_tbis
+    Array[File] known_sites_vcfs
+    Array[File] known_sites_vcf_tbis
     String ref_base_name = basename(reference_fasta)
     # This regex should cover all three species of fasta files seen in the wild: .fasta, .fa, and .fna. Tested at regex101.com
     String ref_name = sub(ref_base_name, ".f[nasta]", "")
