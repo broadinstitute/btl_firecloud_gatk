@@ -19,13 +19,13 @@ workflow gatk_process_samples {
     String ref_base_name = basename(reference_fasta)
     # This regex should cover all three species of fasta files seen in the wild: .fasta, .fa, and .fna. Tested at regex101.com
     String ref_name = sub(ref_base_name, ".f[nasta]", "")
-
+    String output_disk_gb = "10"
 
     call btl_gatk_indexref.gatk_indexref_task as gatk_indexref_task {
         input:
             ref_fasta = reference_fasta,
             ref_name = ref_name,
-            output_disk_gb = "10",
+            output_disk_gb = output_disk_gb,
             debug_dump_flag = "onfail"
     }
 
@@ -45,7 +45,7 @@ workflow gatk_process_samples {
                     in_bam = bam_entry,
                     sample_name = sample_name,
                     reference_tgz = gatk_indexref_task.reference_tgz,
-                    output_disk_gb = "10",
+                    output_disk_gb = output_disk_gb,
                     debug_dump_flag = "onfail"
             }
         }
@@ -60,7 +60,7 @@ workflow gatk_process_samples {
                     in_bam_index = in_bam_index,
                     sample_name = sample_name,
                     reference_tgz = gatk_indexref_task.reference_tgz,
-                    output_disk_gb = "10",
+                    output_disk_gb = output_disk_gb,
                     debug_dump_flag = "onfail"
             }
         }
@@ -78,7 +78,7 @@ workflow gatk_process_samples {
                     known_sites_vcf_tbis = known_sites_vcf_tbis,
                     sample_name = sample_name,
                     reference_tgz = gatk_indexref_task.reference_tgz,
-                    output_disk_gb = "10",
+                    output_disk_gb = output_disk_gb,
                     debug_dump_flag = "onfail"
             }
         }
@@ -92,7 +92,7 @@ workflow gatk_process_samples {
                 bqsr_table = gatk_bqsr_task.out_bqsr_table,
                 sample_name = sample_name,
                 reference_tgz = gatk_indexref_task.reference_tgz,
-                output_disk_gb = "10",
+                output_disk_gb = output_disk_gb,
                 debug_dump_flag = "onfail"
 	    }
 
