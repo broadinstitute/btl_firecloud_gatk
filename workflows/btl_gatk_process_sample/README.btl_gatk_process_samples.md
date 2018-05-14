@@ -39,6 +39,7 @@ The following is a template you can use to create the input json file for the wo
   "gatk_process_samples.gatk_haplotypecaller_task.ploidy": "(optional) String?",
   "gatk_process_samples.samples_tsv_fofn": "File",
   "gatk_process_samples.reference_fasta": "File",
+  "gatk_process_samples.output_disk_gb": "(optional) String",
   "gatk_process_samples.gatk_haplotypecaller_task.erc": "(optional) String?",
   "gatk_process_samples.use_bqsr": "Boolean",
   "gatk_process_samples.known_sites_vcfs": "Array[File]",
@@ -94,6 +95,11 @@ and these will be uploaded by Widdler upload.
 
 
 Now let's explain some of the other inputs inputs.
+
+### gatk_process_samples.output_disk_gb
+
+This specifies the size in gigabytes for the output disk that will be assigned to store the outputs. If not 
+specified, a default of 10GB is used. You may find you need to increase this when working with larger data sets.
 
 ### gatk_process_samples.onprem_download_path
 
