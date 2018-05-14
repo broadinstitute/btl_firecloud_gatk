@@ -2,7 +2,7 @@
 
 Important! All examples below shown use widdler_dev. Please only use this version until the gatk2cloud changes have been pushed to production.
 
-##TLDR
+## TLDR
 
 1. Prepare your json input file (see examples below).
 2. Run widdler upload like so:
