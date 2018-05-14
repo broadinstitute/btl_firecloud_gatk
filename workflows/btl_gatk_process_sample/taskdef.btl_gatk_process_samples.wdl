@@ -10,8 +10,8 @@ workflow gatk_process_samples {
     File samples_tsv_fofn
 
     Boolean prealigned = false
-    Boolean use_tcir
-    Boolean use_bqsr
+    Boolean use_tcir = false
+    Boolean use_bqsr = false
 
     File reference_fasta
     Array[File] known_sites_vcfs
