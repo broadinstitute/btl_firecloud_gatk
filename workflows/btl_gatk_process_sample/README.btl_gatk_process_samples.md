@@ -8,6 +8,7 @@ Important! All examples below shown use widdler_dev. Please only use this versio
 2. Run widdler upload like so:
 
 ```sh /cil/shed/apps/internal/widdler_dev/widdler.sh upload /cil/shed/apps/internal/wdl_cloud/taskdef.btl_gatk_process_samples.wdl </path/to/json/input>```
+
 3. Run widdler run like so:
 
 ```sh /cil/shed/apps/internal/widdler_dev/widdler.sh run /cil/shed/apps/internal/wdl_cloud/taskdef.btl_gatk_process_samples.wdl </path/to/json/input> -S gscid-cloud -d /cil/shed/apps/internal/wdl_cloud/wdl_bundle.zip```
