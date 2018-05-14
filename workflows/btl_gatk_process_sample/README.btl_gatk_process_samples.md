@@ -241,7 +241,7 @@ Sincerely,
 The Widdler
 ```
 
-You will receive the same attachments, but please note that the stderr and stdout files will not contain any information.
+You will receive the same attachments as with on-prem workflows, but please note that the stderr and stdout files will not contain any information.
 These will eventually be removed from the email for cloud workflows since the bucket URL is provided instead. 
 
 ### Getting Help
