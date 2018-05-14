@@ -131,6 +131,7 @@ Data must first be uploaded to the cloud. The command format is as follows:
 ```sh widdler.sh upload <wdl file> <input_json>```
 
 example:
+
 ```sh /cil/shed/apps/internal/widdler_dev/widdler.sh upload /cil/shed/apps/internal/wdl_cloud/taskdef.btl_gatk_process_samples.wdl /cil/shed/sandboxes/amr/gatk_cloud/process_samples.json```
 
 Since we've set up defaults to be the settings for the GCID team, additional parameters do not need to be specified for
@@ -222,6 +223,7 @@ You should see the usual widdler output providing you with the workflow ID of yo
 
 You can expect the same widdler e-mail that you would get with an on-prem run, except that your workflow root path
 will be a clickable link that will take you directly to the execution directory for your gatk2cloud workflow.
+
 ```
 Dear amr,
 
