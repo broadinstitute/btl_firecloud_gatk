@@ -11,7 +11,7 @@ Important! All examples below shown use widdler_dev. Please only use this versio
 
 3. Run widdler run like so:
 
-```sh /cil/shed/apps/internal/widdler_dev/widdler.sh run /cil/shed/apps/internal/wdl_cloud/taskdef.btl_gatk_process_samples.wdl </path/to/json/input> -S gscid-cloud -d /cil/shed/apps/internal/wdl_cloud/wdl_bundle.zip```
+```sh /cil/shed/apps/internal/widdler_dev/widdler.sh run /cil/shed/apps/internal/wdl_cloud/taskdef.btl_gatk_process_samples.wdl </path/to/json/input> -S gscid-cloud -d /cil/shed/apps/internal/wdl_cloud/wdl_bundle_process_samples.zip ```
 
 4. Wait for widdler email.
 
@@ -205,7 +205,7 @@ An example of the widdler output is as follows:
 ### Widdler Run
 
 Once files are uploaded to the Google Cloud bucket, the workflow may be executed as follows:
-```sh /cil/shed/apps/internal/widdler_dev/widdler.sh run /cil/shed/apps/internal/wdl_cloud/taskdef.btl_gatk_process_samples.wdl </path/to/json/input> -S gscid-cloud -d /cil/shed/apps/internal/wdl_cloud/wdl_bundle.zip```
+```sh /cil/shed/apps/internal/widdler_dev/widdler.sh run /cil/shed/apps/internal/wdl_cloud/taskdef.btl_gatk_process_samples.wdl </path/to/json/input> -S gscid-cloud -d /cil/shed/apps/internal/wdl_cloud/wdl_bundle_process_samples.zip ```
 
 You should see the usual widdler output providing you with the workflow ID of your workflow. For example:
 
