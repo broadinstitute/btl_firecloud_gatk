@@ -31,6 +31,7 @@ workflow gatk_process_cohort {
     Float ts_filter_snp
     Float ts_filter_indel
     String ? extra_vr_params
+    String output_disk_gb = "10"
 
     Boolean run_gatk_vqsr = true
     Boolean run_gatk_filter_genotypes
@@ -63,7 +64,7 @@ workflow gatk_process_cohort {
                 known_sites_vcf_tbis = known_sites_vcf_tbis,
                 known_sites_vcfs =known_sites_vcfs,
                 extra_vr_params = extra_vr_params,
-                output_disk_gb = "10",
+                output_disk_gb = output_disk_gb,
                 debug_dump_flag = "onfail"
         }
     }
@@ -73,7 +74,7 @@ workflow gatk_process_cohort {
             sv_vcf = filtration_vcf_in[0],
             cohort_name = cohort_name,
             reference_tgz = reference_tgz,
-            output_disk_gb = "10",
+            output_disk_gb = output_disk_gb,
             debug_dump_flag = "onfail",
             snp_filter_expression = "VQSLOD <= 0.0",
             indel_filter_expression = "VQSLOD <= 0.0"
@@ -85,7 +86,7 @@ workflow gatk_process_cohort {
             input:
                 vcf_in = gatk_variant_filtration_task.vcf_out,
                 cohort_name = cohort_name,
-                output_disk_gb = "10",
+                output_disk_gb = output_disk_gb,
                 debug_dump_flag = "onfail"
         }
     }
@@ -96,7 +97,7 @@ workflow gatk_process_cohort {
             vcf_in = snpeff_vcf_in[0],
             snpeff_db_tgz = snpeff_db_tgz,
             snpeff_db_name = snpeff_db_name,
-            output_disk_gb = "10",
+            output_disk_gb = output_disk_gb,
             debug_dump_flag = "onfail"
     }
 

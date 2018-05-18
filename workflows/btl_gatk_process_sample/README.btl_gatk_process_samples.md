@@ -4,7 +4,7 @@ Important! All examples below shown use widdler_dev. Please only use this versio
 
 ## TLDR
 
-0. Log in to Stout (widdler_dev will only work here).
+0. Log in to Stout or an interactive UGES host (widdler_dev will only work here).
 1. Prepare your json input file (see examples below).
 2. Run widdler upload like so:
 
