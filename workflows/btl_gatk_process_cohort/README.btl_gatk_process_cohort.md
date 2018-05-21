@@ -5,7 +5,8 @@ Important! All examples below shown use widdler_dev. Please only use this versio
 ## TLDR
 
 0. Log in to Stout or an interactive UGES host (widdler_dev will only work here).
-1. Prepare your json input file (see examples below).
+1. Prepare your json input file (see examples below). You can use the process_samples gvcf output with GS urls 
+for the value for the gatk_process_cohort.gvcf_fofn json key.
 2. Run widdler upload like so:
 
 ```sh /cil/shed/apps/internal/widdler_dev/widdler.sh upload /cil/shed/apps/internal/wdl_cloud/taskdef.btl_gatk_process_cohort.wdl </path/to/json/input>```
@@ -63,7 +64,7 @@ The following is a template you can use to create the input json file for the wo
 }
 ```
 Notes: 
-* Optional items can be ommitted. 
+* Optional items can be omitted. 
 * If not using VQSR, write false as its value.
 * Due to a quirk with the WDL language, the two know_sites parameters can't be set to optional even though the tasks
 that use them are being made optional. So if not using known_sites, just pass an empty array([]). 
@@ -188,8 +189,9 @@ For the "gatk_process_cohort.gvcf_fofn" input, list all gvcf files like so:
 ```
 
 Note that a fofn using Google Storage URLS is possible and possibly preferable here since no upload would then be 
-required for the files contained in the fofn. The process samples workflow produces this fofn and it can be passed 
-directly to the process cohort workflow.
+required for the files contained in the fofn. 
+
+The process samples workflow produces this fofn and it can be passed directly to the process cohort workflow.
 
 ###
 
