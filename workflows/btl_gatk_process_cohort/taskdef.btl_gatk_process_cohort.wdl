@@ -9,8 +9,6 @@ workflow gatk_process_cohort {
     Map[String, String]? handoff_files
 
     File gvcf_fofn
-    # I've made gvcf_list 'optional' just so widdler validate doesn't complain when it isn't in json file, since
-    # this is extrapolated from the fofn.
     Array[File] gvcf_list = read_lines(gvcf_fofn)
     String cohort_name
     File reference_tgz
