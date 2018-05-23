@@ -117,12 +117,12 @@ are not specified, and such, will not run:
       "FS",
       "MQ"
    ],
-   gatk.snp_resource_params":[  
+   gatk_process_cohort.snp_resource_params":[  
       "7g8_gb4,known=false,training=true,truth=true,prior=15.0 /gsap/garage-protistvector/U19_Aim4/Pf3K/7g8_gb4.combined.final.vcf.gz",
       "hb3_dd2,known=false,training=true,truth=true,prior=15.0 /gsap/garage-protistvector/U19_Aim4/Pf3K/hb3_dd2.combined.final.vcf.gz",
       "3d7_hb3,known=false,training=true,truth=true,prior=15.0 /gsap/garage-protistvector/U19_Aim4/Pf3K/3d7_hb3.combined.final.vcf.gz"
    ],
-   "gatk.indel_resource_params":[  
+   "gatk_process_cohort.indel_resource_params":[  
       "7g8_gb4,known=false,training=true,truth=true,prior=12.0 /gsap/garage-protistvector/U19_Aim4/Pf3K/7g8_gb4.combined.final.vcf.gz",
       "hb3_dd2,known=false,training=true,truth=true,prior=12.0 /gsap/garage-protistvector/U19_Aim4/Pf3K/hb3_dd2.combined.final.vcf.gz",
       "3d7_hb3,known=false,training=true,truth=true,prior=12.0 /gsap/garage-protistvector/U19_Aim4/Pf3K/3d7_hb3.combined.final.vcf.gz"

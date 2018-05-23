@@ -18,7 +18,7 @@ workflow gatk_process_samples {
     Array[File] known_sites_vcf_tbis
     String ref_base_name = basename(reference_fasta)
     # This regex should cover all three species of fasta files seen in the wild: .fasta, .fa, and .fna. Tested at regex101.com
-    String ref_name = sub(ref_base_name, ".f[nasta]", "")
+    String ref_name = sub(ref_base_name, ".f[nast]*a$", "")
     String output_disk_gb = "10"
 
     call btl_gatk_indexref.gatk_indexref_task as gatk_indexref_task {
