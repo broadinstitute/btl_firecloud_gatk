@@ -69,7 +69,8 @@ Notes:
 * Due to a quirk with the WDL language, the two know_sites parameters can't be set to optional even though the tasks
 that use them are being made optional. So if not using known_sites, just pass an empty array([]). 
 
-An example of a workflow input that is not using VQSR/known_sites and related parameters:
+An example of a workflow input that is not using VQSR/known_sites and related parameters. Note that omitting the 
+gatk_process_cohort.run_gatk_vqsr line from the file is equivalent to setting it to false:
 ```
 {
   "gatk_process_cohort.onprem_download_path": "/cil/shed/sandboxes/amr/gatk_cloud/output",
@@ -95,19 +96,17 @@ An example of a workflow input that is not using VQSR/known_sites and related pa
 }
 ```
 
-An example of a workflow that does use VQSR/known_sites is as follows (note: the actual inputs shown here are just to 
-demonstrate syntax, but the workflow wouldn't make sense since the inputs are for two different genomes):
+An example of a workflow that does use VQSR/known_sites is as follows. Note that the other optional tasks (snpeff, filter_genotypes)
+are not specified, and such, will not run:
 ```
 {
   "gatk_process_cohort.onprem_download_path": "/cil/shed/sandboxes/amr/gatk_cloud/output",
   "gatk_process_cohort.run_gatk_vqsr": true,
   "gatk_process_cohort.ts_filter_snp": 99.5,
   "gatk_process_cohort.ts_filter_indel": 99.0,
-  "gatk_process_cohort.snpeff_db_name": "CNA2",
-  "gatk_process_cohort.snpeff_db_tgz": "/cil/shed/sandboxes/amr/gatk_cloud/CNA2.tgz",
+  "gatk_process_cohort.snpeff_db_name": "",
+  "gatk_process_cohort.snpeff_db_tgz": "",
   "gatk_process_cohort.snp_max_gaussians": "2",
-  "gatk_process_cohort.snp_resource_params": [],
-  "gatk_process_cohort.indel_resource_params": [],
   "gatk_process_cohort.cohort_name": "PlasmodiumFalciparum",
   "gatk_process_cohort.indel_max_gaussians": "2",
   "gatk_process_cohort.reference_tgz": "gs://4b66fc8a-tmp/cromwell-executions/gatk_indexref/14d24780-51c9-4932-bdd9-9562c4f7d493/call-gatk_indexref_task/PlasmoDB-28_Pfalciparum3D7_Genome.tgz",
@@ -118,12 +117,12 @@ demonstrate syntax, but the workflow wouldn't make sense since the inputs are fo
       "FS",
       "MQ"
    ],
-   gatk.snp_resource":[  
+   gatk.snp_resource_params":[  
       "7g8_gb4,known=false,training=true,truth=true,prior=15.0 /gsap/garage-protistvector/U19_Aim4/Pf3K/7g8_gb4.combined.final.vcf.gz",
       "hb3_dd2,known=false,training=true,truth=true,prior=15.0 /gsap/garage-protistvector/U19_Aim4/Pf3K/hb3_dd2.combined.final.vcf.gz",
       "3d7_hb3,known=false,training=true,truth=true,prior=15.0 /gsap/garage-protistvector/U19_Aim4/Pf3K/3d7_hb3.combined.final.vcf.gz"
    ],
-   "gatk.indel_resource":[  
+   "gatk.indel_resource_params":[  
       "7g8_gb4,known=false,training=true,truth=true,prior=12.0 /gsap/garage-protistvector/U19_Aim4/Pf3K/7g8_gb4.combined.final.vcf.gz",
       "hb3_dd2,known=false,training=true,truth=true,prior=12.0 /gsap/garage-protistvector/U19_Aim4/Pf3K/hb3_dd2.combined.final.vcf.gz",
       "3d7_hb3,known=false,training=true,truth=true,prior=12.0 /gsap/garage-protistvector/U19_Aim4/Pf3K/3d7_hb3.combined.final.vcf.gz"
@@ -138,8 +137,8 @@ demonstrate syntax, but the workflow wouldn't make sense since the inputs are fo
                 "gs://broad-cil-devel-bucket/input_data/hb3_dd2.combined.final.vcf.gz",
                 "gs://broad-cil-devel-bucket/input_data/3d7_hb3.combined.final.vcf.gz"
   ],
-  "gatk_process_cohort.gvcf_fofn": "/cil/shed/sandboxes/amr/gatk_cloud/process_cohort.fofn",
-  "gatk_process_cohort.run_gatk_filter_genotypes": true,
+  "gatk_process_cohort.gvcf_fofn": "/cil/shed/sandboxes/amr/gatk_cloud/output/vcfs.out",
+  "gatk_process_cohort.run_gatk_filter_genotypes": false,
   "gatk_process_cohort.snp_annotation": [
       "QD",
       "FS",
@@ -154,6 +153,26 @@ and these will be uploaded by Widdler upload.
 
 
 Now let's explain some of the other inputs inputs.
+### gatk_process_cohort.run_gatk_vqsr
+
+Including this in the json file with a value of true will run VQSR on the results of the joint genotype task. Ommit
+or set to 'false' to disable VQSR.
+
+If setting to false, the parameters that VQSR uses should be provided empty arrays ([]) or empty strings("") as 
+appropriate. See the first example above.
+
+### gatk_process_cohort.run_gatk_filter_genotypes
+
+Including this in the json file with a value of true will run the filter genotypes script on the results of the
+variant filtration task. Omit or set to 'false' to disable filter genotypes.
+
+### gatk_process_cohort.run_snpeff
+
+Including this in the json file with a value of true will run the snpeff task on the results filter genotypes if
+that task was used, otherwise on the results of variant filtration. Omit or set to 'false' to snpeff.
+
+Note that if using snpeff, then gatk_process_cohort.snpeff_db_name and gatk_process_cohort.snpeff_db_tgz must be 
+specified.
 
 ### gatk_process_cohort.reference_tgz
 
