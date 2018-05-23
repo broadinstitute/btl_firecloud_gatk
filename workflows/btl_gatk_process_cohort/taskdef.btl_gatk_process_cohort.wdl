@@ -33,8 +33,9 @@ workflow gatk_process_cohort {
     String ? extra_vr_params
     String output_disk_gb = "10"
 
-    Boolean run_gatk_vqsr = true
-    Boolean run_gatk_filter_genotypes
+    Boolean run_gatk_vqsr = false
+    Boolean run_snpeff = false
+    Boolean run_gatk_filter_genotypes = false
 
     call btl_gatk_joint_genotype.gatk_joint_genotype_task as gatk_joint_genotype_task{
         input:
@@ -68,10 +69,10 @@ workflow gatk_process_cohort {
                 debug_dump_flag = "onfail"
         }
     }
-    Array[File] filtration_vcf_in = select_all([gatk_vqsr_task.vcf_out, gatk_joint_genotype_task.vcf_out])
+    File filtration_vcf_in = select_first([gatk_vqsr_task.vcf_out, gatk_joint_genotype_task.vcf_out])
     call btl_gatk_variant_filtration.gatk_variant_filtration_task as gatk_variant_filtration_task{
         input:
-            sv_vcf = filtration_vcf_in[0],
+            sv_vcf = filtration_vcf_in,
             cohort_name = cohort_name,
             reference_tgz = reference_tgz,
             output_disk_gb = output_disk_gb,
@@ -90,19 +91,23 @@ workflow gatk_process_cohort {
                 debug_dump_flag = "onfail"
         }
     }
-    Array[File] snpeff_vcf_in = select_all([gatk_filter_genotypes_task.vcf_out, gatk_variant_filtration_task.vcf_out])
-    call btl_gatk_snpeff.gatk_snpeff_task as gatk_snpeff_task {
-        input:
-            cohort_name = cohort_name,
-            vcf_in = snpeff_vcf_in[0],
-            snpeff_db_tgz = snpeff_db_tgz,
-            snpeff_db_name = snpeff_db_name,
-            output_disk_gb = output_disk_gb,
-            debug_dump_flag = "onfail"
+    File snpeff_vcf_in = select_first([gatk_filter_genotypes_task.vcf_out, gatk_variant_filtration_task.vcf_out])
+    if (run_snpeff == true) {
+        call btl_gatk_snpeff.gatk_snpeff_task as gatk_snpeff_task {
+            input:
+                cohort_name = cohort_name,
+                vcf_in = snpeff_vcf_in,
+                snpeff_db_tgz = snpeff_db_tgz,
+                snpeff_db_name = snpeff_db_name,
+                output_disk_gb = output_disk_gb,
+                debug_dump_flag = "onfail"
+        }
     }
-
+    File final_output = select_first([gatk_snpeff_task.vcf_out,
+                                      gatk_filter_genotypes_task.vcf_out,
+                                      gatk_variant_filtration_task.vcf_out])
     output {
-        File out_vcf = gatk_variant_filtration_task.vcf_out
+        File out_vcf = final_output
         }
 }
 
