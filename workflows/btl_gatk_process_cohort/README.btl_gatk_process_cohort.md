@@ -171,8 +171,8 @@ variant filtration task. Omit or set to 'false' to disable filter genotypes.
 Including this in the json file with a value of true will run the snpeff task on the results filter genotypes if
 that task was used, otherwise on the results of variant filtration. Omit or set to 'false' to snpeff.
 
-Note that if using snpeff, then gatk_process_cohort.snpeff_db_name and gatk_process_cohort.snpeff_db_tgz must be 
-specified.
+Note that if using snpeff, then gatk_process_cohort.snpeff_db_name and gatk_process_cohort.snpeff_db_tgz must also be 
+specified, as in the first json example above.
 
 ### gatk_process_cohort.reference_tgz
 
