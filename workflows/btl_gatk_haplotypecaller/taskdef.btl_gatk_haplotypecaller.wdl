@@ -74,7 +74,7 @@ run('''\
             --input_file ${in_bam} \
             ${"-BQSR " + bqsr_table} \
             -ERC ${default="GVCF" erc} \
-            -ploidy ${default="2" ploidy} \
+            -ploidy ${default="1" ploidy} \
             -o ${out_gvcf_fn} \
             -variant_index_type LINEAR \
             -variant_index_parameter 128000 \

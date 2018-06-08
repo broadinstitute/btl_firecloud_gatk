@@ -21,6 +21,8 @@ workflow gatk_process_cohort {
     Array[File] known_sites_vcf_tbis
     Array[String] snp_resource_params
     Array[String] indel_resource_params
+    String snp_filter_expression
+    String indel_filter_expression
 
     Int snp_max_gaussians
     Int indel_max_gaussians
@@ -75,8 +77,8 @@ workflow gatk_process_cohort {
             reference_tgz = reference_tgz,
             output_disk_gb = output_disk_gb,
             debug_dump_flag = "onfail",
-            snp_filter_expression = "VQSLOD <= 0.0",
-            indel_filter_expression = "VQSLOD <= 0.0"
+            snp_filter_expression = snp_filter_expression,
+            indel_filter_expression = indel_filter_expression
 
     }
 
