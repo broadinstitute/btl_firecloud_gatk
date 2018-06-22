@@ -10,6 +10,7 @@ workflow gatk_variant_filtration {
 
 task gatk_variant_filtration_task {
     String gatk_path = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
+    String genotypeMergeOptions = "PRIORTIZE"
     String cohort_name
     File reference_tgz
     String snp_filter_expression
@@ -102,7 +103,7 @@ run('''\
             --variant filtered_SNPs.vcf \
             --variant filtered_INDELs.vcf \
             -o ${vcf_out_fn} \
-            -genotypeMergeOptions UNIQUIFY
+            -genotypeMergeOptions ${genotypeMergeOptions}
 ''')
 
 
