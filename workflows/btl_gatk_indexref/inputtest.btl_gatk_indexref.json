@@ -1,6 +1,6 @@
 {
-  "gatk_indexref.IndexReference.ref_name": "minion_illumina_hybrid_clean_MT",
-  "gatk_indexref.IndexReference.output_disk_gb": "10",
-  "gatk_indexref.IndexReference.ref_fasta": "gs://broad-cil-devel-bucket/input_data/minion_illumina_hybrid_clean_MT.fasta",
-  "gatk_indexref.IndexReference.debug_dump_flag": "onfail"
+  "gatk_indexref.gatk_indexref_task.ref_name": "AfunSG_v1",
+  "gatk_indexref.gatk_indexref_task.output_disk_gb": "10",
+  "gatk_indexref.gatk_indexref_task.ref_fasta": "gs://4b66fc8a-tmp/broad-file-inputs/seq/plasmodium/sredmond/refs/AfunSG_v1.fasta",
+  "gatk_indexref.gatk_indexref_task.debug_dump_flag": "onfail"
 }

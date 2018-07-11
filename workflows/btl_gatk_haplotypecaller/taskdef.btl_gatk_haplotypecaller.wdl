@@ -13,7 +13,7 @@ task gatk_haplotypecaller_task {
     File in_bam
     File in_bam_index
     String sample_name
-
+    File intervals
     File ? bqsr_table
     String ? ploidy
     String ? erc
@@ -62,6 +62,7 @@ run('tar xvf ${reference_tgz}')
 #    -i $   padding  interval_size \
 #    > intervals.list
 #''')
+
 #			--intervals intervals.list \
 #			--interval_padding 100 \
 
@@ -75,6 +76,8 @@ run('''\
             -ERC ${default="GVCF" erc} \
             -ploidy ${default="2" ploidy} \
             -o ${out_gvcf_fn} \
+			--intervals ${intervals} \
+			--interval_padding 100 \
             -variant_index_type LINEAR \
             -variant_index_parameter 128000 \
             ${default="\n" extra_hc_params}
