@@ -4,6 +4,6 @@
   "gatk_haplotypecaller.gatk_haplotypecaller_task.debug_dump_flag": "onfail",
   "gatk_haplotypecaller.gatk_haplotypecaller_task.in_bam": "gs://4b66fc8a/sredmond_test_aligned/Fumoz12_unaligned_p2_2.bam",
   "gatk_haplotypecaller.gatk_haplotypecaller_task.sample_name": "fumoz_12",
-  "gatk_haplotypecaller.gatk_haplotypecaller_task.intervals": "gs://4b66fc8a/sredmond_test/intervals.list",
+  "gatk_haplotypecaller.intervals_file": "gs://4b66fc8a/sredmond_test/chr_intervals.list",
   "gatk_haplotypecaller.gatk_haplotypecaller_task.output_disk_gb": "100"
 }

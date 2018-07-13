@@ -1,19 +1,25 @@
 workflow gatk_haplotypecaller {
     String? onprem_download_path
     Map[String, String]? handoff_files
+    File intervals_file
+    Array[File] intervals_list = read_lines(intervals_file)
 
-    call gatk_haplotypecaller_task 
-
+    scatter (interval in intervals_list) {
+    call gatk_haplotypecaller_task {
+        input:
+            interval = interval
+        }
+    }
 }
 
 
 
 task gatk_haplotypecaller_task {
     String gatk_path = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
+    String interval
     File in_bam
     File in_bam_index
     String sample_name
-    File intervals
     File ? bqsr_table
     String ? ploidy
     String ? erc
@@ -27,7 +33,7 @@ task gatk_haplotypecaller_task {
 
     String out_gvcf_fn = "${sample_name}.gvcf"
 
-    String output_disk_gb 
+    String output_disk_gb
     String boot_disk_gb = "10"
     String ram_gb = "60"
     String cpu_cores = "1"
@@ -76,7 +82,7 @@ run('''\
             -ERC ${default="GVCF" erc} \
             -ploidy ${default="2" ploidy} \
             -o ${out_gvcf_fn} \
-			--intervals ${intervals} \
+			--intervals ${interval} \
 			--interval_padding 100 \
             -variant_index_type LINEAR \
             -variant_index_parameter 128000 \
@@ -105,10 +111,10 @@ run('date')
             tar cfz debug_bundle.tar.gz --exclude=debug_bundle.tar.gz .
         else
             touch debug_bundle.tar.gz
-        fi     
+        fi
         /opt/src/algutil/monitor_stop.py
 
-        # exit statement must be the last line in the command block 
+        # exit statement must be the last line in the command block
         exit $exit_code
 
     }
@@ -131,8 +137,3 @@ run('date')
     }
 
 }
-
-
-
-
-
