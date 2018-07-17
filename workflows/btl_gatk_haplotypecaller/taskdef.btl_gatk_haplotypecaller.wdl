@@ -3,6 +3,7 @@ workflow gatk_haplotypecaller {
     Map[String, String]? handoff_files
     File intervals_file
     Array[File] intervals_list = read_lines(intervals_file)
+    String output_filename = "merged.gvcf"
 
     scatter (interval in intervals_list) {
     call gatk_haplotypecaller_task {
@@ -10,8 +11,30 @@ workflow gatk_haplotypecaller {
             interval = interval
         }
     }
+
+    call GatherGVCFs {
+        input:
+            input_vcfs = gatk_haplotypecaller_task.out_gvcf,
+            output_filename = output_filename
+    }
 }
 
+task GatherGVCFs {
+    String picard_path = "/cil/shed/apps/external/picard/current/bin/picard.jar"
+    Array[File] input_vcfs
+    String output_filename
+    command {
+    java -jar -Xmx50G ${picard_path} GatherVcfs -i ${input_vcfs} -i ${output_filename}
+    }
+    runtime {
+        docker : "gcr.io/btl-dockers/btl_gatk:1"
+        memory: "${ram_gb}GB"
+        cpu: "${cpu_cores}"
+        disks: "local-disk ${output_disk_gb} HDD"
+        bootDiskSizeGb: "${boot_disk_gb}"
+        preemptible: "${preemptible}"
+    }
+}
 
 
 task gatk_haplotypecaller_task {
@@ -19,7 +42,7 @@ task gatk_haplotypecaller_task {
     String interval
     File in_bam
     File in_bam_index
-    String sample_name
+    String sample_name = "fumoz_12"
     File ? bqsr_table
     String ? ploidy
     String ? erc
@@ -120,6 +143,7 @@ run('date')
     }
     output {
         File out_gvcf = "${out_gvcf_fn}"
+        File out_gvcf_index = "${out_gvcf_fn}.tbi"
         File monitor_start="monitor_start.log"
         File monitor_stop="monitor_stop.log"
         File dstat="dstat.log"
@@ -137,3 +161,5 @@ run('date')
     }
 
 }
+
+
