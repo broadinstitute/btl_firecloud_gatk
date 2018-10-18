@@ -105,11 +105,9 @@ workflow gatk_process_cohort {
     }
     File final_output = select_first([gatk_snpeff_task.vcf_out,
                                       gatk_filter_genotypes_task.vcf_out,
+                                      gatk_filter_genotypes_task.filter_stat_tsv,
                                       gatk_variant_filtration_task.vcf_out])
     output {
         File out_vcf = final_output
-        }
+    }
 }
-
-
-
