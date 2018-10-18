@@ -11,8 +11,8 @@ task gatk_filter_genotypes_task {
     File vcf_in
     String cohort_name
     String vcf_out_fn = "${cohort_name}.genotype.filtered.vcf"
-
-    String output_disk_gb 
+    String filter_stat = "${cohort_name}.genotype.filtered.stat.tsv"
+    String output_disk_gb
     String boot_disk_gb = "10"
     String ram_gb = "3"
     String cpu_cores = "1"
@@ -38,7 +38,7 @@ run('''python /opt/src/filterGatkGenotypes.py \
     --min_GQ 50 \
     --min_percent_alt_in_AD 0.8 \
     --min_total_DP 10 \
-    ${vcf_in} > ${vcf_out_fn}
+    ${vcf_in} > ${vcf_out_fn} 2> ${filter_stat}
 ''')
 "
     echo "$python_cmd"
@@ -56,10 +56,10 @@ run('''python /opt/src/filterGatkGenotypes.py \
         tar cfz debug_bundle.tar.gz --exclude=debug_bundle.tar.gz .
     else
         touch debug_bundle.tar.gz
-    fi     
+    fi
     /opt/src/algutil/monitor_stop.py
 
-    # exit statement must be the last line in the command block 
+    # exit statement must be the last line in the command block
     exit $exit_code
 
 
@@ -70,7 +70,7 @@ run('''python /opt/src/filterGatkGenotypes.py \
         File monitor_stop="monitor_stop.log"
         File dstat="dstat.log"
         File debug_bundle="debug_bundle.tar.gz"
-
+        File filter_stat_tsv="${filter_stat}"
     } runtime {
         docker : "gcr.io/btl-dockers/btl_gatk:1"
         memory: "${ram_gb}GB"
@@ -78,8 +78,6 @@ run('''python /opt/src/filterGatkGenotypes.py \
         disks: "local-disk ${output_disk_gb} HDD"
         bootDiskSizeGb: "${boot_disk_gb}"
         preemptible: "${preemptible}"
-        
+
     }
 }
-
-
