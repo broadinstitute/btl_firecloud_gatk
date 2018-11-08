@@ -10,7 +10,6 @@ workflow gatk_variant_filtration {
 
 task gatk_variant_filtration_task {
     String gatk_path = "/humgen/gsa-hpprojects/GATK/bin/GenomeAnalysisTK-3.7-93-ge9d8068/GenomeAnalysisTK.jar"
-    String genotypeMergeOptions = "UNSORTED"
     String cohort_name
     File reference_tgz
     String snp_filter_expression
@@ -20,7 +19,7 @@ task gatk_variant_filtration_task {
     String vcf_out_fn = "${cohort_name}.variant.filtered.vcf"
 
 
-    String output_disk_gb 
+    String output_disk_gb
     String boot_disk_gb = "10"
     String ram_gb = "10"
     String cpu_cores = "1"
@@ -103,7 +102,8 @@ run('''\
             --variant filtered_SNPs.vcf \
             --variant filtered_INDELs.vcf \
             -o ${vcf_out_fn} \
-            -genotypeMergeOptions ${genotypeMergeOptions}
+            -genotypeMergeOptions UNSORTED \
+            --assumeIdenticalSamples
 ''')
 
 
@@ -129,10 +129,10 @@ run('date')
             tar cfz debug_bundle.tar.gz --exclude=debug_bundle.tar.gz .
         else
             touch debug_bundle.tar.gz
-        fi     
+        fi
         /opt/src/algutil/monitor_stop.py
 
-        # exit statement must be the last line in the command block 
+        # exit statement must be the last line in the command block
         exit $exit_code
 
     }
@@ -155,6 +155,3 @@ run('date')
     }
 
 }
-
-
-
